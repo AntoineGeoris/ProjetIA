@@ -1,0 +1,11 @@
+body { 
+    background-color: #ffd933;
+    font-family: 'Trebuchet MS';
+}
+
+#gameTitle {
+    text-align: left;
+    font-family: "Fantasy";
+    color : #581845;
+    font-weight: bolder;
+    }
