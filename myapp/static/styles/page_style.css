@@ -3,7 +3,7 @@ body {
     font-family: 'Trebuchet MS';
 }
 
-#gameTitle {
+.gameTitle {
     text-align: left;
     font-family: "Fantasy";
     color : #581845;
