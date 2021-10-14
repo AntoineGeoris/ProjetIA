@@ -48,6 +48,27 @@
 			<div class="box"></div>
 			<div class="box"></div>
 			<div class="box"></div>
+
+			<!-- Nouveau script table-->
+			<script>
+				document.write('<table style = "border: 1px solid black">');
+					var gridWidth = 5;
+					var gridHeight = 5;
+					var grid = [];
+					for(var y = 0; y < gridHeight; y++)
+					{
+					document.write('<tr >');
+						grid.push([]);
+						for(var x = 0; x < gridWidth; x++)
+						{
+						document.write('<td style = "border: 1px solid black; height : 150px; width : 150px" onclick="alert(\'clicked\');">');
+							grid[y].push(0);
+							document.write('</td>');
+						}
+						document.write('</tr>');
+					}
+					document.write('</table>');
+				</script>
 		</div>
 	</body>
 </html>
