@@ -1,25 +1,9 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<style>
-			#gameAccessButton {
-				display : block;
-				margin : auto;
-			}
+{% extends 'base.html' %}
 
-		</style>
-		<title>Page accueil</title>
-		<link rel="stylesheet" type= "text/css" href="{{ url_for('static',filename='styles/page_style.css') }}">
-	</head>
-	<body>
-		<header>
-			<h1 class="gameTitle">Maki</h1>
-		</header>
+{% block head %}
+	<title>Accueil</title>
+{% endblock %}
 
-		<a href="game"><input type="button" value="Accéder au jeu !" id="gameAccessButton"/></a>
-		<script type="text/javascript">
-			
-		</script>
-		<p></p>
-	</body>
-</html>
+{% block content %}
+	<a href="game"><input type="button" value="Accéder au jeu !" id="gameAccessButton"/></a>
+{% endblock %}

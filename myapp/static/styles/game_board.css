@@ -1,0 +1,10 @@
+.gameBoardBox {
+    border: 2px solid black;
+    height: 100px;
+    width: 100px;
+}
+
+#gameBoard {
+    margin: 0 auto;
+    border-collapse: collapse;
+}

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+	<head>
+        {% block head%}{% endblock %}
+		<link rel="stylesheet" type= "text/css" href="{{ url_for('static',filename='styles/page_style.css') }}">
+	</head>
+	<body>
+		<header>
+			<h1 class="gameTitle">Maki</h1>
+		</header>
+		{% block content %}{% endblock %}
+	</body>
+</html>

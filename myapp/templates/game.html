@@ -1,74 +1,13 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<style>
-			.game-board{ 
-				width: 600px;
-				display:  grid;
-				grid-template-columns: repeat(5, 100px);
- 				grid-template-rows: repeat(5, 100px);
-  				grid-auto-flow: column;
-				  margin : auto;
-			}
-			.box {
-				background-color: #d9d9d9;
-				border: 2px solid black;
-			}
-		</style>
-		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/page_style.css') }}">
-		<title>Maki</title>
-	</head>
-	<body>
-		<header>
-			<h1 class="gameTitle">Maki</h1>
-		</header>
-		<div class="game-board">
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
-			<div class="box"></div>
+{% extends 'base.html' %}
 
-			<!-- Nouveau script table-->
-			<script>
-				document.write('<table style = "border: 1px solid black">');
-					var gridWidth = 5;
-					var gridHeight = 5;
-					var grid = [];
-					for(var y = 0; y < gridHeight; y++)
-					{
-					document.write('<tr >');
-						grid.push([]);
-						for(var x = 0; x < gridWidth; x++)
-						{
-						document.write('<td style = "border: 1px solid black; height : 150px; width : 150px" onclick="alert(\'clicked\');">');
-							grid[y].push(0);
-							document.write('</td>');
-						}
-						document.write('</tr>');
-					}
-					document.write('</table>');
-				</script>
-		</div>
-	</body>
-</html>
+{% block head %}
+	<title>Jeu</title>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/game_board.css') }}">
+	<script src="{{ url_for('static',filename='scripts/game_board.js')}}"></script>
+{% endblock %}
+
+{% block content %}
+	<script>
+		let gameBoard = createGameBoard()
+	</script>
+{% endblock %}
