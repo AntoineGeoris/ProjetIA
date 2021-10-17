@@ -1,6 +1,7 @@
 from flask import Flask
 from .views import app
 from . import models
+from .forms import *
 
 models.db.init_app(app)
 
