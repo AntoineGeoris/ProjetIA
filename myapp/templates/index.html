@@ -1,9 +1,9 @@
-{% extends 'base.html' %}
+{% extends 'layout.html' %}
 
 {% block head %}
-	<title>Accueil</title>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/index.css') }}">
 {% endblock %}
 
 {% block content %}
-	<a href="game"><input type="button" value="Accéder au jeu !" id="gameAccessButton"/></a>
+	
 {% endblock %}
