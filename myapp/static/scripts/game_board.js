@@ -18,5 +18,7 @@ function createGameBoard() {
             }
 			document.write('</tr>');
 		}
-	document.write('</table>');
+        gameBoard[0][0].style.background = "#2ACAEA";
+        gameBoard[4][4].style.background = "#F62B2B";
+        document.write('</table>');
 }  
