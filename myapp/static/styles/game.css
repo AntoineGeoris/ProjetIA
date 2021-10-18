@@ -20,24 +20,24 @@
 	box-shadow: 0 0 0 lightgray;
 	transition: all 200ms ease;
 }
-.arrow.left {
+.arrow#left {
     right: 50px;
     top : 250px;
     transform: translate3d(0,-50%,0) rotate(-135deg);
 }
 
-.arrow.right {
+.arrow#right {
     right: 10px;
     top : 250px;
     transform: translate3d(0,-50%,0) rotate(45deg);
 }
-.arrow.up {
+.arrow#up {
     right: 30px;
     top : 230px;
     transform: translate3d(0,-50%,0) rotate(-45deg);
 }
 
-.arrow.down {
+.arrow#down {
     right: 30px;
     top : 270px;
     transform: translate3d(0,-50%,0) rotate(135deg);
