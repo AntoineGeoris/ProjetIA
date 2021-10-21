@@ -1,4 +1,4 @@
-const GAME_BOARD_HEIGHT = 5;
+/* const GAME_BOARD_HEIGHT = 5;
 const GAME_BOARD_WIDTH = 5;
 
 class Player {
@@ -78,4 +78,4 @@ function move(event) {
 
     p++
     
-}
+} */
