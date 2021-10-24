@@ -8,4 +8,4 @@ def init_db() :
 	db.drop_all()
 	db.create_all()
 	db.session.commit()
-	lg.warnin('Database initialized !') 
+	lg.warning('Database initialized !') 
