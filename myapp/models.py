@@ -11,12 +11,12 @@ def init_db() :
 	db.drop_all()
 	db.create_all()
 	db.session.commit()
-	lg.warnin('Database initialized !') 
+	lg.warning('Database initialized !') 
 
 	#Will probably have changes in the DB implementation, testing purpose
 
 class Player(db.Model):
-	id = db.Column(db.Integer, primay_key = True)
+	id = db.Column(db.Integer, primary_key = True)
 	username = db.Column(db.String(20), unique = True, nullable = False)
 	email = db.Column(db.String(80), unique = True, nullable = False)
 	image_file = db.Column(db.String(20), nullable = False, default = 'default.jpg')
@@ -36,7 +36,7 @@ class Move(db.Model):
 
 
 class Game(db.Model):	
-	id = db.Column(db.Integer, primay_key = True)
+	id = db.Column(db.Integer, primary_key = True)
 	id_winner = db.Column(db.Integer, nullable = True)
 	date_played = db.Column(db.DateTime, nullable = False, default = datetime.utcnow) #no parenthesis, we want to pass the function as an argument, not having the current time (when 'executed') 
 	player_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = False)
