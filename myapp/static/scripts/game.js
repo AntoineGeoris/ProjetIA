@@ -98,6 +98,7 @@ class GameBoard {
         if (this.#allowedMove(direction)) {
             let box = this.players[this.p % 2].box;
             let line = this.players[this.p % 2].line;
+            let color = this.players[this.p % 2].color;
             
             switch(direction){
                 case "left":
@@ -135,7 +136,7 @@ class GameBoard {
             return box + 1 < GAME_BOARD_WIDTH && this.grid[line][box + 1].style.background == "";
 
         if (direction == "down") 
-            return line + 1 > GAME_BOARD_HEIGHT && this.grid[line + 1][box].style.background == "";
+            return line + 1 < GAME_BOARD_HEIGHT && this.grid[line + 1][box].style.background == "";
 
         return line - 1 >= 0 && this.grid[line - 1][box].style.background == "";
     }
