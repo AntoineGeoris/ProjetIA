@@ -44,3 +44,4 @@ class Game(db.Model):
 
 	def __repr__(self) :
 		return f"Game('{self.id}, {self.id_winner}, {self.date_played}')"
+

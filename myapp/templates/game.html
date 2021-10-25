@@ -2,17 +2,14 @@
 
 {% block head %}
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/game.css') }}">
-	<script src="{{ url_for('static',filename='scripts/game_board.js')}}"></script>
+	<script src="{{ url_for('static',filename='scripts/game.js')}}"></script>
 {% endblock %}
 
 {% block content %}
 	<script>
-		let gameBoard = createGameBoard();
+		let player1 = new Player("Natan", 0, 0);
+		let player2 = new Player("Antoine", 4, 4);
+		let game_board = new GameBoard(player1, player2);
+		game_board.display();
 	</script>
-	<div>
-			<a href="#" class="arrow down"></a>
-			<a href="#" class="arrow up"></a>
-			<a href="#" class="arrow left"></a>
-			<a href="#" class="arrow right"></a>
-	</div>
 {% endblock %}
