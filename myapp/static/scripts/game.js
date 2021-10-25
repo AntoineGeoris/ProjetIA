@@ -2,21 +2,16 @@ const GAME_BOARD_WIDTH = 5;
 const GAME_BOARD_HEIGHT = 5;
 
 class Player {
-    constructor(name, line, box, color) {
+    constructor(name, line, box) {
         this._name = name;
         this._line = line;
         this._box = box;
-        this._color = color;
     }
 
     /*---getters---*/
 
     get name() {
         return this._name;
-    }
-
-    get color() {
-        return this._color;
     }
 
     get line() {
@@ -48,10 +43,6 @@ class Player {
     set name(name) {
         this._name = name;
     }
-
-    set color(color) {
-        this._color = color;
-    }
 }
 
 class GameBoard {
@@ -79,8 +70,10 @@ class GameBoard {
             }
             document.write('</tr>');
         }
-        this.grid[0][0].style.background = this.player1.color;
-        this.grid[4][4].style.background = this.player2.color;
+        this.grid[0][0].classList.add("playerOne")
+        this.grid[0][0].classList.toggle("playerOn");
+        this.grid[4][4].classList.add("playerTwo")
+        this.grid[4][4].classList.toggle("playerOn");
         document.write('</table>');
 
         document.write("<div id='arrow_div'>");
@@ -98,23 +91,28 @@ class GameBoard {
         if (this.#allowedMove(direction)) {
             let box = this.players[this.p % 2].box;
             let line = this.players[this.p % 2].line;
-            let color = this.players[this.p % 2].color;
+
+            this.grid[line][box].classList.toggle("playerOn");
             
             switch(direction){
                 case "left":
-                    this.grid[line][box - 1].style.background = color;
+                    this.grid[line][box - 1].classList.add(this.p % 2 == 0 ? "playerOne" : "playerTwo");
+                    this.grid[line][box - 1].classList.toggle("playerOn");
                     this.players[this.p % 2].box--;
                     break;
                 case "right":
-                    this.grid[line][box + 1].style.background = color;
+                    this.grid[line][box + 1].classList.add(this.p % 2 == 0 ? "playerOne" : "playerTwo");
+                    this.grid[line][box + 1].classList.toggle("playerOn");
                     this.players[this.p % 2].box++;
                     break;
                 case "down":
-                    this.grid[line + 1][box].style.background = color;
+                    this.grid[line + 1][box].classList.add(this.p % 2 == 0 ? "playerOne" : "playerTwo");
+                    this.grid[line + 1][box].classList.toggle("playerOn");
                     this.players[this.p % 2].line++;
                     break;
                 default:
-                    this.grid[line - 1][box].style.background = color;
+                    this.grid[line - 1][box].classList.add(this.p % 2 == 0 ? "playerOne" : "playerTwo");
+                    this.grid[line - 1][box].classList.toggle("playerOn");
                     this.players[this.p % 2].line--;
                     break;
             }
@@ -130,15 +128,15 @@ class GameBoard {
         let color = this.players[this.p % 2].color;
 
         if (direction == "left") 
-            return box - 1 >= 0 && this.grid[line][box - 1].style.background == "";
+            return box - 1 >= 0 && !this.grid[line][box - 1].classList.contains(this.p % 2 != 0 ? "playerOne" : "playerTwo");
 
         if (direction == "right") 
-            return box + 1 < GAME_BOARD_WIDTH && this.grid[line][box + 1].style.background == "";
+            return box + 1 < GAME_BOARD_WIDTH && !this.grid[line][box + 1].classList.contains(this.p % 2 != 0 ? "playerOne" : "playerTwo");
 
         if (direction == "down") 
-            return line + 1 < GAME_BOARD_HEIGHT && this.grid[line + 1][box].style.background == "";
+            return line + 1 < GAME_BOARD_HEIGHT && !this.grid[line + 1][box].classList.contains(this.p % 2 != 0 ? "playerOne" : "playerTwo");
 
-        return line - 1 >= 0 && this.grid[line - 1][box].style.background == "";
+        return line - 1 >= 0 && !this.grid[line - 1][box].classList.contains(this.p % 2 != 0 ? "playerOne" : "playerTwo");
     }
 }
 
