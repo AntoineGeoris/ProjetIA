@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash, redirect, request
+from flask import render_template, flash, redirect, request
 from flask.helpers import url_for
 from myapp.forms import RegistrationForm, LoginForm
 from myapp.models import GameBoard
