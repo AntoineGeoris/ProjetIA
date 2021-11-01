@@ -125,7 +125,6 @@ class GameBoard {
     #allowedMove(direction) {
         let box = this.players[this.p % 2].box;
         let line = this.players[this.p % 2].line;
-        let color = this.players[this.p % 2].color;
 
         if (direction == "left") 
             return box - 1 >= 0 && !this.grid[line][box - 1].classList.contains(this.p % 2 != 0 ? "playerOne" : "playerTwo");

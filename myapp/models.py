@@ -1,10 +1,7 @@
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import backref
-from .views import app
+from myapp import db
 from datetime import datetime
 import logging as lg
-
-db = SQLAlchemy(app)
 
 def init_db() :
 	db.drop_all()
@@ -55,4 +52,3 @@ class Player(db.Model):
 
 	def __repr__(self):
 		return f"User : ('{self.id}') '{self.username}'"
-

@@ -1,20 +1,20 @@
-from flask import Flask, render_template, flash, redirect
+from flask import Flask, render_template, flash, redirect, request
 from flask.helpers import url_for
-from .forms import RegistrationForm, LoginForm
+from myapp.forms import RegistrationForm, LoginForm
+from myapp.models import GameBoard
+from myapp import app
 
-app = Flask(__name__)
-
-app.config.from_object('config')
-app.config['SECRET_KEY'] = 'a33653a7074d917291e2b70c227fb065' #Generated w/ secrets.token_hex()
+ #Generated w/ secrets.token_hex()
 
 @app.route('/')
 @app.route('/index/')
 def index() :
 	return render_template('index.html', title = 'Accueil')
 
-@app.route('/game/')
+@app.route('/game/', methods=['GET', 'POST'])
 def game() : 
-	return render_template('game.html', title = 'Jeu')
+	if request.method == 'GET':
+		return render_template('game.html', title = 'Jeu')
 
 @app.route('/registration/', methods=['GET', 'POST'])
 def registration():
