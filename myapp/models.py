@@ -1,7 +1,11 @@
 from sqlalchemy.orm import backref
 from myapp import db
+from myapp.ia import AI
 from datetime import datetime
+from enum import IntEnum
 import logging as lg
+from random import choice
+from statistics import mode
 
 def init_db() :
 	db.drop_all()
@@ -15,64 +19,114 @@ def init_db() :
 	db.session.commit()
 	lg.warning('Database initialized !') 
 
+class GameType(IntEnum):
+	AI_AGAINST_AI = 1
+	PLAYER_AGAINST_AI = 2
+	PLAYER_AGAINST_PLAYER = 3
+
 	#Will probably have changes in the DB implementation, testing purpose
 
 class GameBoard(db.Model):
+	BOARD_HEIGHT = 5
+	BOARD_WIDTH = 5
+
 	id = db.Column(db.Integer, primary_key = True)
 	player_1_pos = db.Column(db.String(2), nullable = False, default = "00")
 	player_2_pos = db.Column(db.String(2), nullable = False, default = "44")
 	date_played = db.Column(db.DateTime, nullable = False, default = datetime.utcnow)
 	no_turn = db.Column(db.Integer, nullable = False, default = "0")
-	board_state = db.Column(db.String(25), nullable = False, default = "1000000000000000000000002")
+	board = db.Column(db.String(25), nullable = False, default = "1000000000000000000000002")
+	type = db.Column(db.Integer, nullable = False, default = GameType.PLAYER_AGAINST_AI)
+	active_player = db.Column(db.Integer, nullable = True)
 
 	player_1_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
 	player_2_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
 
-	__game_board_state_to_str = lambda cells : "" if len(cells) == 0 else "".join(cells[0]) + __game_board_state_to_str(cells[1:])
+	def __game_board_state_to_str(self, board):
+		string = ""
+		for i in range(5):
+			string += "".join(board[i])
+
+		return string
 
 	def game_board_state_from_str(self):
 		board = []
 		for i in range(1,6):
 			line = []
 			for y in range((i - 1) * 5, i * 5):
-				line.append(self.board_state[y])
+				line.append(self.board[y])
 			board.append(line)
 		return board
 
-	def move_allowed(self, game_state, player_pos, move):
-		line = player_pos[0]
-		column = player_pos[1]
+	def pos_active_player(self):
+		pass
 
-		if move == "left":
-			return column - 1 >= 0 and game_state[line][column - 1] == '0'
+	def move_allowed(self, move, line, column, board, num_player):
 		if move == "right":
-			return column + 1 >= 0 and game_state[line][column + 1] == '0'
-		if move == "down":
-			return line + 1 >= 0 and game_state[line + 1][column] == '0'
+			return column + 1 < self.BOARD_HEIGHT and (board[line][column + 1] == '0' or board[line][column + 1] == str(num_player))
+		if move == "left":
+			return column - 1 >= 0 and (board[line][column - 1] == '0' or board[line][column - 1] == str(num_player))
+		if move == "up":
+			return line - 1 < self.BOARD_HEIGHT and (board[line - 1][column] == '0' or board[line - 1][column] == str(num_player))
 		
-		return line - 1 >= 0 and game_state[line - 1][column] == '0'
+		return line + 1 < self.BOARD_HEIGHT and (board[line + 1][column] == '0' or board[line + 1][column] == str(num_player))
 
-	def move(self, player_pos, move):
-		board_state = self.__game_board_state_from_str()
+	def move(self, move, num_player, board, line, column):
+		""" line = self.player_1_pos[0] if num_player == 1 else self.player_2_pos[0]
+		column = self.player_1_pos[1] if num_player == 1 else self.player_2_pos[1] """
 
-		if self.move_allowed(board_state, player_pos, move):
-			line = player_pos[0]
-			column = player_pos[1]
+		if move == "right":
+			column += 1
+		elif move == "left":
+			column -= 1
+		elif move == "up":
+			line -= 1
+		else:
+			line += 1
+			
+		board[line][column] = str(num_player)
+		self.board = self.__game_board_state_to_str(board)
 
-			if move == "left":
-				board_state[line][column - 1] = board_state
-				player_pos[1] = str(int(column) - 1)
-			elif move == "right":
-				board_state[line][column + 1] = board_state
-				player_pos[1] = str(int(column) + 1)
-			elif move == "down":
-				board_state[line + 1][column] = board_state
-				player_pos[0] = str(int(line) + 1)
-			else:
-				board_state[line - 1][column] = board_state
-				player_pos[0] = str(int(line) - 1)
+		if num_player == 1:
+			self.player_1_pos = str(line) + str(column)
+		else:
+			self.player_2_pos = str(line) + str(column)
 
-			self.board_state = self.__game_board_state_to_str(board_state)
+		return board
+			
+
+
+	def play(self, move):
+		ia = AI()
+		board = self.game_board_state_from_str()
+		if self.type == GameType.PLAYER_AGAINST_AI:
+			line = int(self.player_1_pos[0])
+			column = int(self.player_1_pos[1])
+
+			if self.move_allowed(move, line, column, board, 1):
+				board = self.move(move, 1, board, line, column)
+
+				move = ia.get_move()
+				line = int(self.player_2_pos[0])
+				column = int(self.player_2_pos[1])
+				while not self.move_allowed(move, line, column, board, 2):
+					move = ia.get_move()
+				
+				board = self.move(move, 2, board, line, column)
+
+				print("Postion joueur 1 : ", self.player_1_pos)
+				print("Postion joueur 2 : ", self.player_2_pos)
+
+			self.no_turn += 2
+
+		elif self.type == GameType.PLAYER_AGAINST_PLAYER:
+			pass
+		else:
+			pass
+
+		if all(map(lambda x : x != '0', self.board)):
+			print("Player " + mode(self.board) + " is the winner")
+
 
 
 class Player(db.Model):
@@ -89,7 +143,16 @@ class Player(db.Model):
 
 
 def new_game(player1 = None, player2 = None):
-	new_game = GameBoard(player_1_id = player1, player_2_id = player2)
+	if player1 is None and player2 is None:
+		type = GameType.AI_AGAINST_AI
+	elif player1 is not None and player2 is None:
+		type = GameType.PLAYER_AGAINST_AI
+		active_player = player1
+	else:
+		type = GameType.PLAYER_AGAINST_PLAYER
+		active_player = choice([player1, player2])
+	new_game = GameBoard(player_1_id = player1, player_2_id = player2, type = type, active_player = active_player)
 	db.session.add(new_game)
 	db.session.commit()
 	return new_game
+
