@@ -21,6 +21,10 @@
     border-collapse: collapse;
 }
 
+.notVisible {
+    display: none;
+}
+
 .arrow {
 	position: absolute;
 	top: 50%;
