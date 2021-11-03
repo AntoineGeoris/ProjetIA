@@ -11,19 +11,21 @@ import myapp.models as models
 def index() :
 	return render_template('index.html', title = 'Accueil')
 
-@app.route('/game/', methods=['POST', 'GET'])
+@app.route('/game/')
 def game() : 
-	if request.method == 'GET':
-		return render_template('game.html', title = 'Jeu')
-	else:
-		new_game = models.new_game()
-		return jsonify(
-			gameID = new_game.id,
-			player1 = new_game.player_1_id,
-			player2 = new_game.player_2_id,
-			turn_no = new_game.no_turn,
-			board = new_game.game_board_state_from_str()
-		)
+	return render_template('game.html', title = 'Jeu')
+
+@app.route('/game/new/', methods=['POST'])
+def new_game():
+	playersID = request.get_json()
+	game = models.new_game(player1=playersID.get('player1ID'), player2=playersID.get('player2ID'))
+	return jsonify(
+		gameID = game.id,
+		player1 = game.player_1_id,
+		player2 = game.player_2_id,
+		turn_no = game.no_turn,
+		board = game.game_board_state_from_str()
+	)
 
 @app.route('/game/move/', methods=['POST'])
 def game_move():

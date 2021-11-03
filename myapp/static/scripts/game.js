@@ -1,14 +1,12 @@
 (function () {
-    const { Component, Store, mount } = owl;
+    const { Component, Store, mount, unmount } = owl;
     const { xml } = owl.tags;
     const { whenReady } = owl.utils;
     const { useRef, useDispatch, useState, useStore } = owl.hooks;
 
     const GAME_TEMPLATE = xml /* xml */ `
         <div>
-            <form action="/game/" method="POST">
-                <button>Nouvelle partie</button>
-            </form>
+            <button t-on-click="newGame">Nouvelle partie</button> 
         </div>
     `;
 
@@ -18,7 +16,7 @@
                 <t t-foreach="table" t-as="line">
                     <tr>
                         <t t-foreach="line" t-as="box">
-                            <td class="gameBoardBox"></td>
+                            <td class="gameBoardBox" t-att-class="box == 1 ? 'playerOne' : (box == 2 ? 'playerTwo' : '')"></td>
                         </t>
                     </tr>
                 </t>
@@ -33,8 +31,9 @@
 
     class GameBoard extends Component {
         static template = GAME_BOARD_TEMPLATE;
+        //static props = ["gameboard"];
 
-        table = [[0,0,0,0,0]]
+        table = [[1,0,0,0,2]];
 
         constructor(gameID, board, turn_no, player1, player2) {
             super();
@@ -49,7 +48,6 @@
             const newState = await this.jsonRPC("/game/move/", {
                 gameID: this.gameID,
                 movement,
-                
             });
         }
 
@@ -87,8 +85,45 @@
           }); */
     }
 
-    class Game extends Component {
-        static template = GAME_TEMPLATE;
+        class Game extends Component {
+            static template = GAME_TEMPLATE;
+            static components = { GameBoard };
+
+            async newGame() {
+                
+                const test = await this.jsonRPC("/game/new/", {
+                    player1ID: 1,
+                    //player2ID: 2,
+                });
+                this.unmount();
+                mount(GameBoard, {target: document.body})
+            }
+
+            jsonRPC(url, data) {
+                return new Promise(function (resolve, reject) {
+                    let xhr = new XMLHttpRequest();
+                    xhr.open("POST", url);
+                    xhr.setRequestHeader("Content-type", "application/json");
+                     xhr.onload = function () {
+                        if (this.status >= 200 && this.status < 300) {
+                            resolve(JSON.parse(xhr.response));
+                        }
+                        else {
+                            reject({
+                                status: this.status,
+                                statusText: xhr.statusText,
+                            });
+                        }                                   
+                    };
+                    xhr.onerror = function () {
+                        reject({
+                            status: this.status,
+                            statusText: xhr.statusText,
+                        });
+                    }
+                    xhr.send(JSON.stringify(data))           
+                });
+        }
     }
 
     function setup() {

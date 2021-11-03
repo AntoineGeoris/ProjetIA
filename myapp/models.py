@@ -28,7 +28,7 @@ class GameBoard(db.Model):
 	player_1_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
 	player_2_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
 
-	__game_board_state_to_str = lambda cells : "" if len(cells) == 0 else "".join(cells[0]) + game_board_state_to_str(cells[1:])
+	__game_board_state_to_str = lambda cells : "" if len(cells) == 0 else "".join(cells[0]) + __game_board_state_to_str(cells[1:])
 
 	def game_board_state_from_str(self):
 		board = []
