@@ -30,7 +30,7 @@ def new_game():
 @app.route('/game/move/', methods=['POST'])
 def game_move():
 	game_state = request.get_json()
-	
+	print(game_state)
 
 @app.route('/registration/', methods=['GET', 'POST'])
 def registration():

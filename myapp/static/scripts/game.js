@@ -63,7 +63,7 @@
             const newState = await this.jsonRPC("/game/move/", {
                 gameID: this.gameBoard.gameID,
                 move: movement,
-                playerID: this.activePlayer,
+                playerID: this.gameBoard.activePlayer,
             });
 
             this.gameBoard.turn_no = newState.turn_no;

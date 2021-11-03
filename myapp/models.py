@@ -22,7 +22,7 @@ class GameBoard(db.Model):
 	player_1_pos = db.Column(db.String(2), nullable = False, default = "00")
 	player_2_pos = db.Column(db.String(2), nullable = False, default = "44")
 	date_played = db.Column(db.DateTime, nullable = False, default = datetime.utcnow)
-	no_turn = db.Column(db.Integer, nullable = False, default = "1")
+	no_turn = db.Column(db.Integer, nullable = False, default = "0")
 	board_state = db.Column(db.String(25), nullable = False, default = "1000000000000000000000002")
 
 	player_1_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
