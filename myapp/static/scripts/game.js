@@ -4,6 +4,14 @@
     const { whenReady } = owl.utils;
     const { useRef, useDispatch, useState, useStore } = owl.hooks;
 
+    const GAME_TEMPLATE = xml /* xml */ `
+        <div>
+            <form action="/game/" method="POST">
+                <button>Nouvelle partie</button>
+            </form>
+        </div>
+    `;
+
     const GAME_BOARD_TEMPLATE = xml /* xml */ `
         <div>
             <table id="gameBoard">
@@ -26,29 +34,66 @@
     class GameBoard extends Component {
         static template = GAME_BOARD_TEMPLATE;
 
-        table = [[0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]];
+        table = [[0,0,0,0,0]]
+
+        constructor(gameID, board, turn_no, player1, player2) {
+            super();
+            this.gameID = gameID;
+            this.players = [player1, player2];
+            this.activePlayer = this.players[turn_no % 2];
+            this.turn_no = turn_no;
+            this.board = board;
+        }
 
         async arrowClick(movement) {
-            let move = false;
-
-            if (movement === "left")
-                move = movement;
-            else if (movement === "right")
-                move = movement;
-            else if (movement === "up")
-                move = movement;
-            else if (movement === "down")
-                move = movement;
-
-            if (move) {
-                console.log(move);
-            }
+            const newState = await this.jsonRPC("/game/move/", {
+                gameID: this.gameID,
+                movement,
+                
+            });
         }
+
+        jsonRPC(url, data) {
+            return new Promise(function (resolve, reject) {
+                let xhr = new XMLHttpRequest();
+                xhr.open("POST", url);
+                xhr.setRequestHeader("Content-type", "application/json");
+                /* xhr.onload = function () {
+                    if (this.status >= 200 && this.status < 300)
+                        resolve(JSON.parse(xhr.response));
+                    else {
+                        reject({
+                            status: this.status,
+                            statusText: xhr.statusText,
+                        });
+                    }                                   
+                };
+                xhr.onerror = function () {
+                    reject({
+                        status: this.status,
+                        statusText: xhr.statusText,
+                    });
+                } */
+                xhr.send(JSON.stringify(data))           
+            });
+        }
+
+          /* gameID = this.props.gameID;
+
+          state = useState({
+              players: this.porps.players,
+              board: this.props.board,
+              activePlayer: this.props.activePlayer,
+          }); */
+    }
+
+    class Game extends Component {
+        static template = GAME_TEMPLATE;
     }
 
     function setup() {
         owl.config.mode = "dev";
-        mount(GameBoard, { target: document.body });
+        mount(Game, { target: document.body });
     }
 
     whenReady(setup);

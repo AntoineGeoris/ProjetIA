@@ -23,10 +23,56 @@ class GameBoard(db.Model):
 	player_2_pos = db.Column(db.String(2), nullable = False, default = "44")
 	date_played = db.Column(db.DateTime, nullable = False, default = datetime.utcnow)
 	no_turn = db.Column(db.Integer, nullable = False, default = "1")
-	cells = db.Column(db.String(25), nullable = False, default = "1000000000000000000000002")
+	board_state = db.Column(db.String(25), nullable = False, default = "1000000000000000000000002")
 
 	player_1_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
 	player_2_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
+
+	__game_board_state_to_str = lambda cells : "" if len(cells) == 0 else "".join(cells[0]) + game_board_state_to_str(cells[1:])
+
+	def game_board_state_from_str(self):
+		board = []
+		for i in range(1,6):
+			line = []
+			for y in range((i - 1) * 5, i * 5):
+				line.append(self.board_state[y])
+			board.append(line)
+		return board
+
+	def move_allowed(self, game_state, player_pos, move):
+		line = player_pos[0]
+		column = player_pos[1]
+
+		if move == "left":
+			return column - 1 >= 0 and game_state[line][column - 1] == '0'
+		if move == "right":
+			return column + 1 >= 0 and game_state[line][column + 1] == '0'
+		if move == "down":
+			return line + 1 >= 0 and game_state[line + 1][column] == '0'
+		
+		return line - 1 >= 0 and game_state[line - 1][column] == '0'
+
+	def move(self, player_pos, move):
+		board_state = self.__game_board_state_from_str()
+
+		if self.move_allowed(board_state, player_pos, move):
+			line = player_pos[0]
+			column = player_pos[1]
+
+			if move == "left":
+				board_state[line][column - 1] = board_state
+				player_pos[1] = str(int(column) - 1)
+			elif move == "right":
+				board_state[line][column + 1] = board_state
+				player_pos[1] = str(int(column) + 1)
+			elif move == "down":
+				board_state[line + 1][column] = board_state
+				player_pos[0] = str(int(line) + 1)
+			else:
+				board_state[line - 1][column] = board_state
+				player_pos[0] = str(int(line) - 1)
+
+			self.board_state = self.__game_board_state_to_str(board_state)
 
 
 class Player(db.Model):
@@ -40,3 +86,10 @@ class Player(db.Model):
 
 	def __repr__(self):
 		return f"User : ({self.id}) {self.username}"
+
+
+def new_game(player1 = None, player2 = None):
+	new_game = GameBoard(player_1_id = player1, player_2_id = player2)
+	db.session.add(new_game)
+	db.session.commit()
+	return new_game
