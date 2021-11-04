@@ -67,7 +67,7 @@ class GameBoard(db.Model):
 		if move == "left":
 			return column - 1 >= 0 and (board[line][column - 1] == '0' or board[line][column - 1] == str(num_player))
 		if move == "up":
-			return line - 1 < self.BOARD_HEIGHT and (board[line - 1][column] == '0' or board[line - 1][column] == str(num_player))
+			return line - 1 >= 0 and (board[line - 1][column] == '0' or board[line - 1][column] == str(num_player))
 		
 		return line + 1 < self.BOARD_HEIGHT and (board[line + 1][column] == '0' or board[line + 1][column] == str(num_player))
 
