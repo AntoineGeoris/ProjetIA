@@ -1,148 +1,110 @@
-const GAME_BOARD_WIDTH = 5;
-const GAME_BOARD_HEIGHT = 5;
+(function () {
+    const { Component, mount } = owl;
+    const { xml } = owl.tags;
+    const { whenReady } = owl.utils;
+    const { useState } = owl.hooks;
 
-class Player {
-    constructor(name, line, box) {
-        this._name = name;
-        this._line = line;
-        this._box = box;
+    const GAME_TEMPLATE = xml /* xml */ `
+        <div>
+            <button t-on-click="newGame">Nouvelle partie</button>
+            <GameBoard gameBoard="gameBoard"/>
+            <div id="arrow_div" t-att-class="gameBoard.gameID == null ? 'notVisible' : ''">
+                <a class="arrow" id="left" t-on-click="arrowClick('left')"></a>
+                <a class="arrow" id="right" t-on-click="arrowClick('right')"></a>
+                <a class="arrow" id="up" t-on-click="arrowClick('up')"></a>
+                <a class="arrow" id="down" t-on-click="arrowClick('down')"></a>
+            </div>
+        </div>
+    `;
+
+    const GAME_BOARD_TEMPLATE = xml /* xml */ `
+        <div>
+            <table id="gameBoard">
+                <t t-foreach="props.gameBoard.board" t-as="line">
+                    <tr>
+                        <t t-foreach="line" t-as="box">
+                            <td class="gameBoardBox" t-att-class="box == 1 ? 'playerOne' : (box == 2 ? 'playerTwo' : '')"></td>
+                        </t>
+                    </tr>
+                </t>
+            </table>
+        </div>`;
+
+    class GameBoard extends Component {
+        static template = GAME_BOARD_TEMPLATE;
+        static props = ["gameBoard"];
     }
 
-    /*---getters---*/
+    class Game extends Component {
+        static template = GAME_TEMPLATE;
+        static components = { GameBoard };
 
-    get name() {
-        return this._name;
-    }
+        gameBoard = useState({
+            gameID: null,
+            players: null,
+            activePlayer: null,
+            turn_no: null,
+            board: [],
+        });
 
-    get line() {
-        return this._line;
-    }
-
-    get box() {
-        return this._box;
-    }
-
-    /*---setters---*/
-
-    set line(line) {
-        if (line < GAME_BOARD_WIDTH && line >= 0) {
-            this._line = line;
-        } else {
-            throw "Position invalide."
+        async newGame() {
+            const response = await this.jsonRPC("/game/new/", {
+                player1ID: 1,
+                //player2ID: 2,
+            });
+            this.gameBoard.gameID = response.gameID;
+            this.gameBoard.players = [response.player1, response.player2];
+            this.gameBoard.activePlayer = response.player1;
+            this.gameBoard.turn_no = response.turn_no;
+            this.gameBoard.board = response.board;
         }
-    }
 
-    set box(box) {
-        if (box < GAME_BOARD_HEIGHT && box >= 0) {
-            this._box = box;
-        } else {
-            throw "Position invalide."
+        async arrowClick(movement) {
+            const newState = await this.jsonRPC("/game/move/", {
+                gameID: this.gameBoard.gameID,
+                move: movement,
+                playerID: this.gameBoard.activePlayer,
+            });
+
+            this.gameBoard.turn_no = newState.turn_no;
+            this.gameBoard.board = newState.board;
+            this.activePlayer = newState.activePlayer;
         }
-    }
 
-    set name(name) {
-        this._name = name;
+        jsonRPC(url, data) {
+            return new Promise(function (resolve, reject) {
+                let xhr = new XMLHttpRequest();
+                xhr.open("POST", url);
+                xhr.setRequestHeader("Content-type", "application/json");
+                    xhr.onload = function () {
+                    if (this.status >= 200 && this.status < 300) {
+                        resolve(JSON.parse(xhr.response));
+                    }
+                    else {
+                        reject({
+                            status: this.status,
+                            statusText: xhr.statusText,
+                        });
+                    }                                   
+                };
+                xhr.onerror = function () {
+                    reject({
+                        status: this.status,
+                        statusText: xhr.statusText,
+                    });
+                }
+                xhr.send(JSON.stringify(data))           
+            });
     }
 }
 
-class GameBoard {
-    constructor(player1, player2) {
-        this.player1 = player1;
-        this.player2 = player2;
-        this.players = [player1, player2];
-        this.grid = [];
-        this.p = 0;
+    function setup() {
+        owl.config.mode = "dev";
+        mount(Game, { target: document.body });
     }
 
-    display() {
-        let directions = ["down", "up", "left", "right"];
-        document.write('<table id="gameBoard">');
+    whenReady(setup);
+    
+}) ();
 
-        for (let iLine = 0; iLine < GAME_BOARD_HEIGHT; iLine++) {
-            document.write('<tr>');
-            this.grid.push([]);
-            for (let iBox = 0; iBox < GAME_BOARD_WIDTH; iBox++) {
-                let box = document.createElement("td");
-                box.classList.add("gameBoardBox")
-                document.body.getElementsByTagName("tr")[iLine].appendChild(box);
-                this.grid[iLine].push(box);
-                document.write('</td>');
-            }
-            document.write('</tr>');
-        }
-        this.grid[0][0].classList.add("playerOne")
-        this.grid[0][0].classList.toggle("playerOn");
-        this.grid[4][4].classList.add("playerTwo")
-        this.grid[4][4].classList.toggle("playerOn");
-        document.write('</table>');
 
-        document.write("<div id='arrow_div'>");
-        for (let i = 0; i < 4; i++) {
-            let arrow = document.createElement("a");
-            arrow.classList.add("arrow");
-            arrow.id = directions[i];
-            arrow.addEventListener('click', () => this.move(arrow.id));
-            document.getElementById("arrow_div").appendChild(arrow);
-        }
-        document.write("</div>");
-    }
-
-    move(direction) {
-        if (this.#allowedMove(direction)) {
-            let box = this.players[this.p % 2].box;
-            let line = this.players[this.p % 2].line;
-
-            this.grid[line][box].classList.toggle("playerOn");
-            
-            switch(direction){
-                case "left":
-                    this.grid[line][box - 1].classList.add(this.p % 2 == 0 ? "playerOne" : "playerTwo");
-                    this.grid[line][box - 1].classList.toggle("playerOn");
-                    this.players[this.p % 2].box--;
-                    break;
-                case "right":
-                    this.grid[line][box + 1].classList.add(this.p % 2 == 0 ? "playerOne" : "playerTwo");
-                    this.grid[line][box + 1].classList.toggle("playerOn");
-                    this.players[this.p % 2].box++;
-                    break;
-                case "down":
-                    this.grid[line + 1][box].classList.add(this.p % 2 == 0 ? "playerOne" : "playerTwo");
-                    this.grid[line + 1][box].classList.toggle("playerOn");
-                    this.players[this.p % 2].line++;
-                    break;
-                default:
-                    this.grid[line - 1][box].classList.add(this.p % 2 == 0 ? "playerOne" : "playerTwo");
-                    this.grid[line - 1][box].classList.toggle("playerOn");
-                    this.players[this.p % 2].line--;
-                    break;
-            }
-            this.p++;
-        }
-        else
-            alert("Déplacement non autorisé");
-    }
-
-    #allowedMove(direction) {
-        let box = this.players[this.p % 2].box;
-        let line = this.players[this.p % 2].line;
-        let color = this.players[this.p % 2].color;
-
-        if (direction == "left") 
-            return box - 1 >= 0 && !this.grid[line][box - 1].classList.contains(this.p % 2 != 0 ? "playerOne" : "playerTwo");
-
-        if (direction == "right") 
-            return box + 1 < GAME_BOARD_WIDTH && !this.grid[line][box + 1].classList.contains(this.p % 2 != 0 ? "playerOne" : "playerTwo");
-
-        if (direction == "down") 
-            return line + 1 < GAME_BOARD_HEIGHT && !this.grid[line + 1][box].classList.contains(this.p % 2 != 0 ? "playerOne" : "playerTwo");
-
-        return line - 1 >= 0 && !this.grid[line - 1][box].classList.contains(this.p % 2 != 0 ? "playerOne" : "playerTwo");
-    }
-}
-
-/* window.onload = function () {
-    let player1 = new Player("Natan", 0, 0, "#2ACAEA");
-    let player2 = new Player("Antoine", 4, 4, "#F62B2B");
-    let game_board = new GameBoard(player1, player2);
-    game_board.display();
-} */

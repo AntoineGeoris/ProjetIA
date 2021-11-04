@@ -1,11 +1,10 @@
-from flask import Flask, render_template, flash, redirect
+from flask import render_template, flash, redirect, request, jsonify
 from flask.helpers import url_for
-from .forms import RegistrationForm, LoginForm
+from myapp.forms import RegistrationForm, LoginForm
+from myapp import app
+import myapp.models as models
 
-app = Flask(__name__)
-
-app.config.from_object('config')
-app.config['SECRET_KEY'] = 'a33653a7074d917291e2b70c227fb065' #Generated w/ secrets.token_hex()
+ #Generated w/ secrets.token_hex()
 
 @app.route('/')
 @app.route('/index/')
@@ -15,6 +14,31 @@ def index() :
 @app.route('/game/')
 def game() : 
 	return render_template('game.html', title = 'Jeu')
+
+@app.route('/game/new/', methods=['POST'])
+def new_game():
+	playersID = request.get_json()
+	game = models.new_game(player1=playersID.get('player1ID'), player2=playersID.get('player2ID'))
+	return jsonify(
+		gameID = game.id,
+		player1 = game.player_1_id,
+		player2 = game.player_2_id,
+		turn_no = game.no_turn,
+		active_player = game.active_player,
+		board = game.game_board_state_from_str()
+	)
+
+@app.route('/game/move/', methods=['POST'])
+def game_move():
+	game_state = request.get_json()
+	game = models.GameBoard.query.filter_by(id = game_state.get('gameID')).first()
+	game.play(game_state.get('move'))
+	models.db.session.commit()
+	return jsonify(
+		turn_no = game.no_turn,
+		board = game.game_board_state_from_str(),
+		activePlayer = game.player_2_id,
+	)
 
 @app.route('/registration/', methods=['GET', 'POST'])
 def registration():
