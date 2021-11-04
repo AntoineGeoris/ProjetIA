@@ -35,7 +35,7 @@ class GameBoard(db.Model):
 	player_2_pos = db.Column(db.String(2), nullable = False, default = "44")
 	date_played = db.Column(db.DateTime, nullable = False, default = datetime.utcnow)
 	no_turn = db.Column(db.Integer, nullable = False, default = "0")
-	board = db.Column(db.String(25), nullable = False, default = "1000000000000000000000002")
+	state = db.Column(db.String(25), nullable = False, default = "1000000000000000000000002")
 	type = db.Column(db.Integer, nullable = False, default = GameType.PLAYER_AGAINST_AI)
 	active_player = db.Column(db.Integer, nullable = True)
 
@@ -47,14 +47,14 @@ class GameBoard(db.Model):
 		for i in range(5):
 			string += "".join(board[i])
 
-		return string
+		self.state = string
 
 	def game_board_state_from_str(self):
 		board = []
 		for i in range(1,6):
 			line = []
 			for y in range((i - 1) * 5, i * 5):
-				line.append(self.board[y])
+				line.append(self.state[y])
 			board.append(line)
 		return board
 
@@ -85,7 +85,7 @@ class GameBoard(db.Model):
 			line += 1
 			
 		board[line][column] = str(num_player)
-		self.board = self.__game_board_state_to_str(board)
+		self.__game_board_state_to_str(board)
 
 		if num_player == 1:
 			self.player_1_pos = str(line) + str(column)
@@ -124,8 +124,8 @@ class GameBoard(db.Model):
 		else:
 			pass
 
-		if all(map(lambda x : x != '0', self.board)):
-			print("Player " + mode(self.board) + " is the winner")
+		if all(map(lambda x : x != '0', self.state)):
+			print("Player " + mode(self.state) + " is the winner")
 
 
 
