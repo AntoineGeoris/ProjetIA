@@ -1,4 +1,4 @@
-from sqlalchemy.orm import backref
+from sqlalchemy.orm import backref, column_property
 from myapp import db
 from myapp.ia import AI
 from datetime import datetime
@@ -72,9 +72,8 @@ class GameBoard(db.Model):
 		return line + 1 < self.BOARD_HEIGHT and (board[line + 1][column] == '0' or board[line + 1][column] == str(num_player))
 
 	def move(self, move, num_player, board, line, column):
-		""" line = self.player_1_pos[0] if num_player == 1 else self.player_2_pos[0]
-		column = self.player_1_pos[1] if num_player == 1 else self.player_2_pos[1] """
-
+		positionInitial = str(line) + str(column)
+		
 		if move == "right":
 			column += 1
 		elif move == "left":
@@ -83,10 +82,12 @@ class GameBoard(db.Model):
 			line -= 1
 		else:
 			line += 1
-			
+		
+		nouvellePosition = str(line) + str(column)
 		board[line][column] = str(num_player)
 		self.__game_board_state_to_str(board)
 
+		self.enclos(board, positionInitial, nouvellePosition, move, num_player)
 		if num_player == 1:
 			self.player_1_pos = str(line) + str(column)
 		else:
@@ -94,7 +95,30 @@ class GameBoard(db.Model):
 
 		return board
 			
+	def enclos(self, board, positionInitial, nouvellePos, move, num_player):
+		if ((not "0" in positionInitial and not "4" in positionInitial) and ("0" in nouvellePos or "4" in nouvellePos)):
+			ligne = int(nouvellePos[0])
+			colonne = int(nouvellePos[1])
+			cellsSauv = []
+			if move == "up":
+				if num_player == 1:
+					
+					while colonne - 1 > 0 and board[ligne][colonne - 1] == '0':
+						colonne -= 1
+						cellsSauv.append(str(ligne) + str(colonne))
+						while ligne + 1 < 4 and board[ligne + 1][colonne] == '0':
+							ligne += 1
+							cellsSauv.append(str(ligne) + str(colonne))
 
+					for cells in cellsSauv:
+						line = int(cells[0])
+						column = int(cells[1])
+						while line >= 0:
+							board[line][column] = '1'
+							line -= 1
+
+		return board
+						
 
 	def play(self, move):
 		ia = AI()
