@@ -122,6 +122,7 @@ class GameBoard(db.Model):
 						line += lineIncrement
 						saveBoxes.append(str(line) + str(column))
 						while columnLimit(column - columnIncrement) and board[line][column - columnIncrement] == '0':
+							saveBoxes.pop()
 							column += -(columnIncrement)
 							saveBoxes.append(str(line) + str(column))
 
@@ -164,28 +165,33 @@ class GameBoard(db.Model):
 						column += columnIncrement
 						saveBoxes.append(str(line) + str(column))
 						while lineLimit(line - lineIncrement) and board[line - lineIncrement][column] == '0':
+							saveBoxes.pop()
 							line += -(lineIncrement)
 							saveBoxes.append(str(line) + str(column))
-						
 
-				for box in saveBoxes:
-					line = int(box[0])
-					column = int(box[1])
-					if move == "left":
-						while column >= 0:
-							board[line][column] = str(num_player)
-							column -= 1
-					else:
-						while column < self.BOARD_WIDTH:
-							board[line][column] = str(num_player)
-							column += 1
 					
+				for box in saveBoxes:
+					column = int(box[1])
+					lenght_of_enclosure = 1
 
+					if move == "left":
+						while column > 0 and board[int(box[0])][column - 1] == "0":
+							column -= 1
+							lenght_of_enclosure += 1
+						for i in range(lenght_of_enclosure):
+							board[int(box[0])][int(box[1]) - i] = str(num_player)
+					else:
+						while column < self.BOARD_WIDTH - 1 and board[int(box[0])][column + 1] == "0":
+							column += 1
+							lenght_of_enclosure += 1
+						for i in range(lenght_of_enclosure):
+							board[int(box[0])][int(box[1]) + i] = str(num_player)
+					
 		return board
 						
 
 	def play(self, move):
-		#moves = ["left", "up", "up","up", "up"]
+		
 		ia = AI()
 		board = self.game_board_state_from_str()
 		if self.type == GameType.PLAYER_AGAINST_AI:
@@ -202,12 +208,6 @@ class GameBoard(db.Model):
 					move = ia.get_move()
 				
 				board = self.move(move, 2, board, line, column)
-
-				""" for move in moves:
-					line = int(self.player_2_pos[0])
-					column = int(self.player_2_pos[1])
-					board = self.move(move, 2, board, line, column) """
-
 				print("Postion joueur 1 : ", self.player_1_pos)
 				print("Postion joueur 2 : ", self.player_2_pos)
 
