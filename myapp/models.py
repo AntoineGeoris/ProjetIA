@@ -208,8 +208,6 @@ class GameBoard(db.Model):
 					move = ia.get_move()
 				
 				board = self.move(move, 2, board, line, column)
-				print("Postion joueur 1 : ", self.player_1_pos)
-				print("Postion joueur 2 : ", self.player_2_pos)
 
 			self.no_turn += 2
 			self.__game_board_state_to_str(board)
@@ -218,9 +216,6 @@ class GameBoard(db.Model):
 			pass
 		else:
 			pass
-
-		if all(map(lambda x : x != '0', self.state)):
-			print("Player " + mode(self.state) + " is the winner")
 
 
 
