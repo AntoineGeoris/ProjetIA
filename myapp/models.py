@@ -1,11 +1,10 @@
-from sqlalchemy.orm import backref, column_property
+#from sqlalchemy.orm import backref
 from myapp import db
 from myapp.ia import AI
 from datetime import datetime
 from enum import IntEnum
 import logging as lg
 from random import choice
-from statistics import mode
 
 def init_db() :
 	db.drop_all()
@@ -27,34 +26,42 @@ class GameType(IntEnum):
 	#Will probably have changes in the DB implementation, testing purpose
 
 class GameBoard(db.Model):
-	BOARD_HEIGHT = 5
-	BOARD_WIDTH = 5
+	BOARD_SIZE = 5
 
 	id = db.Column(db.Integer, primary_key = True)
-	player_1_pos = db.Column(db.String(2), nullable = False, default = "00")
-	player_2_pos = db.Column(db.String(2), nullable = False, default = "44")
+	player_1_pos = db.Column(db.String(2), nullable = False)
+	player_2_pos = db.Column(db.String(2), nullable = False)
 	date_played = db.Column(db.DateTime, nullable = False, default = datetime.utcnow)
 	no_turn = db.Column(db.Integer, nullable = False, default = "0")
-	state = db.Column(db.String(25), nullable = False, default = "1000000000000000000000002")
+	board = db.Column(db.String(25), nullable = False)
 	type = db.Column(db.Integer, nullable = False, default = GameType.PLAYER_AGAINST_AI)
 	active_player = db.Column(db.Integer, nullable = True)
 
 	player_1_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
 	player_2_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
 
+	def __init__(self, **kwargs):
+		super(GameBoard, self).__init__(**kwargs)
+		self.board = "1"
+		for i in range((self.BOARD_SIZE ** 2) - 2):
+			self.board += "0"
+		self.board += "2"
+		self.player_1_pos = "00"
+		self.player_2_pos = str(self.BOARD_SIZE - 1) * 2
+
+
 	def __game_board_state_to_str(self, board):
 		string = ""
-		for i in range(5):
+		for i in range(self.BOARD_SIZE):
 			string += "".join(board[i])
-
-		self.state = string
+		self.board = string
 
 	def game_board_state_from_str(self):
 		board = []
-		for i in range(1,6):
+		for i in range(1,self.BOARD_SIZE + 1):
 			line = []
-			for y in range((i - 1) * 5, i * 5):
-				line.append(self.state[y])
+			for y in range((i - 1) * self.BOARD_SIZE, i * self.BOARD_SIZE):
+				line.append(self.board[y])
 			board.append(line)
 		return board
 
@@ -63,13 +70,13 @@ class GameBoard(db.Model):
 
 	def move_allowed(self, move, line, column, board, num_player):
 		if move == "right":
-			return column + 1 < self.BOARD_HEIGHT and (board[line][column + 1] == '0' or board[line][column + 1] == str(num_player))
+			return column + 1 < self.BOARD_SIZE and (board[line][column + 1] == '0' or board[line][column + 1] == str(num_player))
 		if move == "left":
 			return column - 1 >= 0 and (board[line][column - 1] == '0' or board[line][column - 1] == str(num_player))
 		if move == "up":
 			return line - 1 >= 0 and (board[line - 1][column] == '0' or board[line - 1][column] == str(num_player))
 		
-		return line + 1 < self.BOARD_HEIGHT and (board[line + 1][column] == '0' or board[line + 1][column] == str(num_player))
+		return line + 1 < self.BOARD_SIZE and (board[line + 1][column] == '0' or board[line + 1][column] == str(num_player))
 
 	def move(self, move, num_player, board, line, column):
 		initialPos = str(line) + str(column)
@@ -96,7 +103,7 @@ class GameBoard(db.Model):
 			
 	def enclosure(self, board, initialPos, newPos, move, num_player):
 		if move in ("down", "up"):
-			if not "0" in initialPos and not "4" in initialPos and ("0" in newPos or "4" in newPos):
+			if not "0" in initialPos and not str(self.BOARD_SIZE - 1) in initialPos and ("0" in newPos or str(self.BOARD_SIZE - 1) in newPos):
 				saveBoxes = []
 				line = int(newPos[0])
 				column = int(newPos[1])
@@ -105,11 +112,11 @@ class GameBoard(db.Model):
 					columnLimit = lambda column : column >= 0
 				else:
 					columnIncrement = 1
-					columnLimit = lambda column : column < self.BOARD_WIDTH
+					columnLimit = lambda column : column < self.BOARD_SIZE
 				
 				if move == "up":
 					lineIncrement = 1
-					lineLimit = lambda line : line < self.BOARD_HEIGHT
+					lineLimit = lambda line : line < self.BOARD_SIZE
 				else:
 					lineIncrement = -1
 					lineLimit = lambda line : line >= 0
@@ -134,12 +141,12 @@ class GameBoard(db.Model):
 							board[line][column] = str(num_player)
 							line -= 1
 					else:
-						while line < self.BOARD_HEIGHT:
+						while line < self.BOARD_SIZE:
 							board[line][column] = str(num_player)
 							line += 1
 
 		else:
-			if not "0" in initialPos and not "4" in initialPos and ("0" in newPos or "4" in newPos):
+			if not "0" in initialPos and not str(self.BOARD_SIZE - 1) in initialPos and ("0" in newPos or str(self.BOARD_SIZE - 1) in newPos):
 				saveBoxes = []
 				line = int(newPos[0])
 				column = int(newPos[1])
@@ -148,11 +155,11 @@ class GameBoard(db.Model):
 					lineLimit = lambda line : line >= 0
 				else:
 					lineIncrement = 1
-					lineLimit = lambda line : line < self.BOARD_HEIGHT
+					lineLimit = lambda line : line < self.BOARD_SIZE
 
 				if move == "left":
 					columnIncrement = 1
-					columnLimit = lambda column : column < self.BOARD_HEIGHT
+					columnLimit = lambda column : column < self.BOARD_SIZE
 				else:
 					columnIncrement = -1
 					columnLimit = lambda column : column >= 0
@@ -181,7 +188,7 @@ class GameBoard(db.Model):
 						for i in range(lenght_of_enclosure):
 							board[int(box[0])][int(box[1]) - i] = str(num_player)
 					else:
-						while column < self.BOARD_WIDTH - 1 and board[int(box[0])][column + 1] == "0":
+						while column < self.BOARD_SIZE - 1 and board[int(box[0])][column + 1] == "0":
 							column += 1
 							lenght_of_enclosure += 1
 						for i in range(lenght_of_enclosure):
@@ -224,9 +231,7 @@ class Player(db.Model):
 	email = db.Column(db.String(120), unique = True, nullable = False)
 	username = db.Column(db.String(30), unique = True, nullable = False)
 	password = db.Column(db.String(20), nullable = False)
-	#image_file = db.Column(db.String(30), nullable = False)
-
-	#games = db.relationship('GamBoard', backref = db.backref('player') , lazy = True)
+	image_file = db.Column(db.String(30), nullable = True)
 
 	def __repr__(self):
 		return f"User : ({self.id}) {self.username}"
@@ -241,8 +246,8 @@ def new_game(player1 = None, player2 = None):
 	else:
 		type = GameType.PLAYER_AGAINST_PLAYER
 		active_player = choice([player1, player2])
+	
 	new_game = GameBoard(player_1_id = player1, player_2_id = player2, type = type, active_player = active_player)
 	db.session.add(new_game)
 	db.session.commit()
 	return new_game
-
