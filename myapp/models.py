@@ -96,7 +96,7 @@ class GameBoard(db.Model):
 			
 	def enclosure(self, board, initialPos, newPos, move, num_player):
 		if move in ("down", "up"):
-			if not "0" in initialPos and not "4" in initialPos and ("0" in newPos or "4" in newPos):
+			if not '0' in initialPos and not '4' in initialPos and ('0' in newPos or '4' in newPos):
 				saveBoxes = []
 				line = int(newPos[0])
 				column = int(newPos[1])
@@ -139,7 +139,7 @@ class GameBoard(db.Model):
 							line += 1
 
 		else:
-			if not "0" in initialPos and not "4" in initialPos and ("0" in newPos or "4" in newPos):
+			if not '0' in initialPos and not '4' in initialPos and ('0' in newPos or '4' in newPos):
 				saveBoxes = []
 				line = int(newPos[0])
 				column = int(newPos[1])
