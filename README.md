@@ -4,8 +4,8 @@ Projet de création d'une intelligence artificielle réalisée en groupe de 3 é
 
 ## Statut projet
 ### Requis
-– [x] Squelette base de l'application
-– [x] IA naive
+- [x] Squelette base de l'application
+- [x] IA naive
 - [ ] Capture des enclos
 - [ ] Fin de partie
 - [ ] IA complète
