@@ -23,6 +23,8 @@ def new_game():
 		gameID = game.id,
 		player1 = game.player_1_id,
 		player2 = game.player_2_id,
+		player1_pos = game.player_1_pos,
+		player2_pos = game.player_2_pos,
 		turn_no = game.no_turn,
 		active_player = game.active_player,
 		board = game.game_board_state_from_str()
@@ -37,6 +39,8 @@ def game_move():
 	return jsonify(
 		turn_no = game.no_turn,
 		board = game.game_board_state_from_str(),
+		player1_pos = game.player_1_pos,
+		player2_pos = game.player_2_pos,
 		activePlayer = game.player_2_id,
 	)
 
