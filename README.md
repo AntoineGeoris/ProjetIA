@@ -8,14 +8,14 @@ Projet de création d'une intelligence artificielle réalisée en groupe de 3 é
 – [x] IA naive
 - [ ] Capture des enclos
 - [ ] Fin de partie
-– [ ] IA complète
-– [ ] Entrainement IA
-– [ ] Gestion des exceptions
+- [ ] IA complète
+- [ ] Entrainement IA
+- [ ] Gestion des exceptions
 ### Dépassement
-– [ ] Inscription et connexion
-– [ ] Optimisation apprentissage 
-– [ ] Documentation
-– [ ] Déployer application
+- [ ] Inscription et connexion
+- [ ] Optimisation apprentissage 
+- [ ] Documentation
+- [ ] Déployer application
 
 ## Installation & lancement
 
