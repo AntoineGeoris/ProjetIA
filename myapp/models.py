@@ -89,8 +89,7 @@ class GameBoard(db.Model):
 			line += 1
 		
 		board[line][column] = str(num_player)
-		flags = [[True] * self.BOARD_SIZE for _ in range(self.BOARD_SIZE)]
-		self.enclosure(board, flags, num_player)
+		flags = self.enclosure(board, num_player)
 
 		for i in range(self.BOARD_SIZE):
 			for j in range(self.BOARD_SIZE):
@@ -104,8 +103,9 @@ class GameBoard(db.Model):
 
 		return board
 			
-	def enclosure(self, board, flags, num_player):
+	def enclosure(self, board, num_player):
 		freeCells = 0
+		flags = [[True] * self.BOARD_SIZE for _ in range(self.BOARD_SIZE)]
 		for line in range(len(flags)):
 			for column in range(len(flags[line])):
 				flags[line][column] = board[line][column] in ('0', str(num_player))
@@ -123,6 +123,8 @@ class GameBoard(db.Model):
 							flags[line][column - 1] = False
 						if column + 1 < self.BOARD_SIZE and board[line][column + 1] == '0':
 							flags[line][column + 1] = False
+
+		return flags
 
 						
 	def play(self, move):
