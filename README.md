@@ -2,7 +2,7 @@
 
 ## Description du Projet
 Projet de création d'une intelligence artificielle, réalisé en groupe de 3 étudiants.
-Application web utilisant les framework Flask, OWL ainsi que SQLAlchemy (ORM).
+Application web utilisant les framework [Flask](https://flask.palletsprojects.com/en/2.0.x/), [OWL](https://github.com/odoo/owl) ainsi que [SQLAlchemy](https://www.sqlalchemy.org/) (ORM).
 
 
 ## Description du jeu 
@@ -43,8 +43,8 @@ Application web utilisant les framework Flask, OWL ainsi que SQLAlchemy (ORM).
 - Lancer run.py
 	- Via un interpréteur de commande, une fois dans le bon répertoire (.../ProjetIA) : python run.py
 
-- Il est également possible de définir des variables via Flask : [Plus d'informations](https://flask.palletsprojects.com/en/2.0.x/cli/)
+	- Il est également possible de définir des variables via Flask : [Plus d'informations](https://flask.palletsprojects.com/en/2.0.x/cli/)
 
-- Accesible via http://localhost:5000/
+- Le site est accesible via http://localhost:5000/
 
 
