@@ -15,9 +15,6 @@ Application web utilisant les framework Flask, OWL ainsi que SQLAlchemy (ORM).
 ![Initial](https://i.ibb.co/Cn8XZ2k/1.png)
 ![Enclos](https://i.ibb.co/gM9qQXZ/2.png)
 ![Capture](https://i.ibb.co/Y3XL15K/3.png)
- <a href="url"><img src="https://i.ibb.co/Cn8XZ2k/1.png" align="left" height="480" width="480" ></a>
- <a href="url"><img src="https://i.ibb.co/gM9qQXZ/2.png" align="left" height="480" width="480" ></a>
- <a href="url"><img src="https://i.ibb.co/Y3XL15K/3.png" align="left" height="480" width="480" ></a>
 - Une fois tous les territoires capturés, la partie prend fin.
 - Le joueur comptabilisant le plus de territoire est déclaré vainqueur.
 
