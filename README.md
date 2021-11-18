@@ -12,11 +12,12 @@ Application web utilisant les framework Flask, OWL ainsi que SQLAlchemy (ORM).
 - Il n'est pas permis de voler un territoire à l'adversaire.
 - Si des territoires (un ou plusieurs) deviennent inaccessibles pour l'un des joueurs, ils sont automatiquement annexés par l'autre joueur.
 - Autrement dit, si l'un des joueurs entoure complètement (ou en utilisant les bords du plateau) une partie de territoire, ces derniers lui sont automatiquement attribués.
-<p align="center">
+![Initial](https://i.ibb.co/Cn8XZ2k/1.png)
+![Enclos](https://i.ibb.co/gM9qQXZ/2.png)
+![Capture](https://i.ibb.co/Y3XL15K/3.png)
  <a href="url"><img src="https://i.ibb.co/Cn8XZ2k/1.png" align="left" height="480" width="480" ></a>
  <a href="url"><img src="https://i.ibb.co/gM9qQXZ/2.png" align="left" height="480" width="480" ></a>
  <a href="url"><img src="https://i.ibb.co/Y3XL15K/3.png" align="left" height="480" width="480" ></a>
-</p>
 - Une fois tous les territoires capturés, la partie prend fin.
 - Le joueur comptabilisant le plus de territoire est déclaré vainqueur.
 
