@@ -36,14 +36,15 @@ Application web utilisant les framework Flask, OWL ainsi que SQLAlchemy (ORM).
 
 
 ## Installation & lancement
+### Installation
+- Un fichier requirements est disponible pour les dépendances :
+	- pip3 install -r requirements.txt
+### Lancement
+- Lancer run.py
+	- Via un interpréteur de commande, une fois dans le bon répertoire (.../ProjetIA) : python run.py
 
-Un fichier requirements est disponible pour les dépendances :
-- pip3 install -r requirements.txt
+- Il est également possible de définir des variables via Flask : [Plus d'informations](https://flask.palletsprojects.com/en/2.0.x/cli/)
 
-Lancer run.py
-Via un interpréteur de commande, une fois dans le bon répertoire (.../ProjetIA) : python run.py
-Il est également possible de définir des variables via Flask : [Plus d'informations](https://flask.palletsprojects.com/en/2.0.x/cli/)
-
-Accesible via http://localhost:5000/
+- Accesible via http://localhost:5000/
 
 
