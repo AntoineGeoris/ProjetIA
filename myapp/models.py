@@ -78,9 +78,7 @@ class GameBoard(db.Model):
 		
 		return line + 1 < self.BOARD_SIZE and (board[line + 1][column] == '0' or board[line + 1][column] == str(num_player))
 
-	def move(self, move, num_player, board, line, column):
-		initialPos = str(line) + str(column)
-		
+	def move(self, move, num_player, board, line, column):		
 		if move == "right":
 			column += 1
 		elif move == "left":
@@ -90,10 +88,14 @@ class GameBoard(db.Model):
 		else:
 			line += 1
 		
-		newPos = str(line) + str(column)
 		board[line][column] = str(num_player)
+		flags = self.enclosure(board, num_player)
 
-		self.enclosure(board, initialPos, newPos, move, num_player)
+		for i in range(self.BOARD_SIZE):
+			for j in range(self.BOARD_SIZE):
+				if flags[i][j]:
+					board[i][j] = str(num_player)
+
 		if num_player == 1:
 			self.player_1_pos = str(line) + str(column)
 		else:
@@ -101,102 +103,30 @@ class GameBoard(db.Model):
 
 		return board
 			
-	def enclosure(self, board, initialPos, newPos, move, num_player):
-		if move in ("down", "up"):
-			if not "0" in initialPos and not str(self.BOARD_SIZE - 1) in initialPos and ("0" in newPos or str(self.BOARD_SIZE - 1) in newPos):
-				saveBoxes = []
-				line = int(newPos[0])
-				column = int(newPos[1])
-				if num_player == 1:
-					columnIncrement = -1
-					columnLimit = lambda column : column >= 0
-				else:
-					columnIncrement = 1
-					columnLimit = lambda column : column < self.BOARD_SIZE
-				
-				if move == "up":
-					lineIncrement = 1
-					lineLimit = lambda line : line < self.BOARD_SIZE
-				else:
-					lineIncrement = -1
-					lineLimit = lambda line : line >= 0
+	def enclosure(self, board, num_player):
+		freeCells = 0
+		flags = [[True] * self.BOARD_SIZE for _ in range(self.BOARD_SIZE)]
+		for line in range(len(flags)):
+			for column in range(len(flags[line])):
+				flags[line][column] = board[line][column] in ('0', str(num_player))
+				freeCells += 1 if board[line][column] == '0' else 0
 
-				while columnLimit(column + columnIncrement) and board[line][column + columnIncrement] == '0':
-					column += columnIncrement
-					saveBoxes.append(str(line) + str(column))
-					while lineLimit(line + lineIncrement) and board[line + lineIncrement][column] == '0':
-						saveBoxes.pop()						
-						line += lineIncrement
-						saveBoxes.append(str(line) + str(column))
-						while columnLimit(column - columnIncrement) and board[line][column - columnIncrement] == '0':
-							saveBoxes.pop()
-							column += -(columnIncrement)
-							saveBoxes.append(str(line) + str(column))
+		for i in range(freeCells):
+			for line in range(len(flags)):
+				for column in range(len(flags[line])):
+					if not flags[line][column]:
+						if line - 1 >= 0 and board[line - 1][column] == '0':
+							flags[line - 1][column] = False
+						if line + 1 < self.BOARD_SIZE and board[line + 1][column] == '0':
+							flags[line + 1][column] = False
+						if column - 1 >= 0 and board[line][column - 1] == '0':
+							flags[line][column - 1] = False
+						if column + 1 < self.BOARD_SIZE and board[line][column + 1] == '0':
+							flags[line][column + 1] = False
 
-				for box in saveBoxes:
-					line = int(box[0])
-					column = int(box[1])
-					if move == "up":
-						while line >= 0:
-							board[line][column] = str(num_player)
-							line -= 1
-					else:
-						while line < self.BOARD_SIZE:
-							board[line][column] = str(num_player)
-							line += 1
+		return flags
 
-		else:
-			if not "0" in initialPos and not str(self.BOARD_SIZE - 1) in initialPos and ("0" in newPos or str(self.BOARD_SIZE - 1) in newPos):
-				saveBoxes = []
-				line = int(newPos[0])
-				column = int(newPos[1])
-				if num_player == 1:
-					lineIncrement = -1
-					lineLimit = lambda line : line >= 0
-				else:
-					lineIncrement = 1
-					lineLimit = lambda line : line < self.BOARD_SIZE
-
-				if move == "left":
-					columnIncrement = 1
-					columnLimit = lambda column : column < self.BOARD_SIZE
-				else:
-					columnIncrement = -1
-					columnLimit = lambda column : column >= 0
-
-				while lineLimit(line + lineIncrement) and board[line + lineIncrement][column] == '0':
-					line += lineIncrement
-					saveBoxes.append(str(line) + str(column))
-					while columnLimit(column + columnIncrement) and board[line][column + columnIncrement] == '0':
-						saveBoxes.pop()
-						column += columnIncrement
-						saveBoxes.append(str(line) + str(column))
-						while lineLimit(line - lineIncrement) and board[line - lineIncrement][column] == '0':
-							saveBoxes.pop()
-							line += -(lineIncrement)
-							saveBoxes.append(str(line) + str(column))
-
-					
-				for box in saveBoxes:
-					column = int(box[1])
-					lenght_of_enclosure = 1
-
-					if move == "left":
-						while column > 0 and board[int(box[0])][column - 1] == "0":
-							column -= 1
-							lenght_of_enclosure += 1
-						for i in range(lenght_of_enclosure):
-							board[int(box[0])][int(box[1]) - i] = str(num_player)
-					else:
-						while column < self.BOARD_SIZE - 1 and board[int(box[0])][column + 1] == "0":
-							column += 1
-							lenght_of_enclosure += 1
-						for i in range(lenght_of_enclosure):
-							board[int(box[0])][int(box[1]) + i] = str(num_player)
-					
-		return board
 						
-
 	def play(self, move):
 		
 		ia = AI()
@@ -223,7 +153,6 @@ class GameBoard(db.Model):
 			pass
 		else:
 			pass
-
 
 
 class Player(db.Model):
