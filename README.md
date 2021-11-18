@@ -3,7 +3,10 @@
 ## Description du Projet
 Projet de création d'une intelligence artificielle, réalisé en groupe de 3 étudiants.
 Application web utilisant les framework [Flask](https://flask.palletsprojects.com/en/2.0.x/), [OWL](https://github.com/odoo/owl) ainsi que [SQLAlchemy](https://www.sqlalchemy.org/) (ORM).
+L'IA se base sur un apprentissage par renforcement (Q-Function) :
 
+[Wikipedia](https://fr.wikipedia.org/wiki/Q-learning)
+[Youtube](https://www.youtube.com/watch?v=a0bVIyIJ074&t=747s)
 
 ## Description du jeu 
 - Il s'agit d'un jeu de territoire.
