@@ -1,3 +1,5 @@
+---delete avant remise---
+
 21/11 - Connection Branch (Mathieu): 
     Suppression des utilisateurs crées depuis init_db 
     Inscription fonctionnelle 
@@ -8,3 +10,11 @@
         Bon affichage une fois connecté
         Si tentative accès /account en non connecté, utilisateur redirigé vers la page de login 
             Une fois log, l'utilisateur est redirigé vers la page à laquelle il tentait d'accéder (ou vers index sinon)
+
+    Gestion utilisateur 
+        Formulaire mise à jour informations du compte  
+            Changement email et username   
+                Verification pour éviter des doublons (2x même adresse email) semble ok
+            Changement image de profile
+                Resize fonctionne (pour éviter de stocker des images trop lourde inutilement)
+            PRG design pattern 
