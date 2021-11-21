@@ -30,9 +30,13 @@ L'IA se base sur un apprentissage par renforcement (Q-Function) :
 - [x] Fin de partie
 - [ ] IA complète
 - [ ] Entrainement IA
-- [ ] Gestion des exceptions
+- [x] Gestion des exceptions
+- [ ] Clean code
 ### Dépassement
-- [ ] Inscription et connexion
+- [x] Inscription et connexion
+- [x] Gestion infos utilisateurs
+- [ ] Partie / Utilisateurs
+- [ ] Page A propos
 - [ ] Optimisation apprentissage 
 - [ ] Documentation
 - [ ] Déployer application
@@ -52,5 +56,13 @@ L'IA se base sur un apprentissage par renforcement (Q-Function) :
 	- Il est également possible de définir des variables via Flask : [Plus d'informations](https://flask.palletsprojects.com/en/2.0.x/cli/)
 
 - Le site est accesible via http://localhost:5000/
+
+## Notes additionnelles 
+- Certains utilisateurs sont déjà crées pour les tests, merci de ne pas changer les informations de loggin (email/pwd).
+
+- email : test@test.com
+- pwd : 1234
+
+
 
 
