@@ -21,6 +21,30 @@
                 <span class="arrow" id="down" t-on-click="arrowClick('down')"></span>
             </div>
             <Scoreboard scoreboard="scoreboard" t-att-style="style"/>
+            <div class="modal fade" id="endGameModal" tabindex="-1" aria-labelledby="endGameModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="endGameModalLabel">Fin de partie</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <t t-if="scoreboard.player1 > scoreboard.player2">
+                        <p>Le joueur 1 à gagner avec un score de <span><t t-esc="scoreboard.player1"/></span> !</p>
+                    </t>
+                    <t t-else="">
+                        <p>Le joueur 2 à gagner avec un score de <span><t t-esc="scoreboard.player2"/></span> !</p>
+                    </t>
+                </div>
+                <div class="modal-footer">
+                    <form action="POST">
+                        <button type="button" class="btn btn-primary" t-on-click="newGame" data-bs-dismiss="modal" aria-label="Close">Rejouer</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Fermer</button>
+                    </form>
+                </div>
+                </div>
+            </div>
+            </div>
         </div>
     `;
 
@@ -77,6 +101,7 @@
             activePlayer: null,
             turn_no: null,
             board: [],
+            isGameover: false,
         });
 
         scoreboard = useState({
@@ -113,6 +138,15 @@
             this.gameBoard.player2_pos = newState.player2_pos;
             this.scoreboard.player1 = newState.player1_score;
             this.scoreboard.player2 = newState.player2_score;
+            
+            if (newState.is_gameover)
+                this.endGame();
+        }
+
+        endGame() {
+            var myModal = new bootstrap.Modal(document.getElementById('endGameModal'))
+
+            myModal.show();
         }
 
         jsonRPC(url, data) {

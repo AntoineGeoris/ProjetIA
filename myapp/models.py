@@ -72,6 +72,9 @@ class GameBoard(db.Model):
 
 		return score(player_number, board)
 
+	def is_gameover(self):
+		return all(map(lambda x : x != '0', self.board))
+
 	def move_allowed(self, move, line, column, board, num_player):
 		if move == "right":
 			return column + 1 < self.BOARD_SIZE and (board[line][column + 1] == '0' or board[line][column + 1] == str(num_player))

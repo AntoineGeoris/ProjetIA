@@ -44,6 +44,7 @@ def game_move():
 		activePlayer = game.player_2_id,
 		player1_score = game.score('1'),
 		player2_score = game.score('2'),
+		is_gameover = game.is_gameover(),
 	)
 
 @app.route('/registration/', methods=['GET', 'POST'])

@@ -108,3 +108,8 @@
 		border-color: #e9ba21;
         box-shadow: 0.5vmin -0.5vmin 0 rgb(90, 89, 88);
 }
+
+.modal-header {
+    background:#e9ba21;
+    Font-weight: bold;
+}
