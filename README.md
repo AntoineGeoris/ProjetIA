@@ -32,18 +32,26 @@ L'IA se base sur un apprentissage par renforcement (Q-Function) :
 - [ ] Entrainement IA
 - [x] Gestion des exceptions
 - [ ] Clean code
+- [ ] Dossier d'analyse
+### Dossier d'analyse
+- [ ] Structure projet
+- [ ] Schéma DB final
+- [ ] Explication IA
+- [ ] Explication entrainement IA
+- [ ] Analyse reflexive 
+- [ ] Fonctionnalité supplémentaire
 ### Dépassement
 - [x] Inscription et connexion
 - [x] Gestion infos utilisateurs
 - [ ] Partie / Utilisateurs
-- [ ] Page A propos
+- [x] Décorateurs
+- [ ] Page accueil remplie
 - [ ] Optimisation apprentissage 
-- [ ] Documentation
+- [x] Documentation
 - [ ] Déployer application
+- [ ] Fonctionnalité supplémentaire
 ### Optimisation 
 - [ ] Enclos
-
-
 
 ## Installation & lancement
 ### Installation
@@ -63,6 +71,10 @@ L'IA se base sur un apprentissage par renforcement (Q-Function) :
 - email : test@test.com
 - pwd : 1234
 
+### Questions
+
+- Documentation ok ?
+- Fonctionnalité supplémentaire - Photo utilisateur ? Darkmode ?
 
 
 
