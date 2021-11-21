@@ -42,6 +42,8 @@ def game_move():
 		player1_pos = game.player_1_pos,
 		player2_pos = game.player_2_pos,
 		activePlayer = game.player_2_id,
+		player1_score = game.score('1'),
+		player2_score = game.score('2'),
 	)
 
 @app.route('/registration/', methods=['GET', 'POST'])

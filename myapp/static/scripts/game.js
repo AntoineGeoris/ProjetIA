@@ -5,22 +5,42 @@
     const { useState } = owl.hooks;
 
     const GAME_TEMPLATE = xml /* xml */ `
-        <div>
-            <button t-on-click="newGame">Nouvelle partie</button>
+        <div id="game">
+            <t t-if="gameBoard.gameID == null">
+                <t t-set="style" t-value="'display: none'"/>
+            </t>
+            <t t-if="gameBoard.gameID != null">
+                <t t-set="style" t-value="''"/>
+            </t>
+            <button class="btn btn-primary" t-on-click="newGame">Nouvelle partie</button>
             <GameBoard gameBoard="gameBoard"/>
-            <div id="arrow_div" t-att-class="gameBoard.gameID == null ? 'notVisible' : ''">
-                <a class="arrow" id="left" t-on-click="arrowClick('left')"></a>
-                <a class="arrow" id="right" t-on-click="arrowClick('right')"></a>
-                <a class="arrow" id="up" t-on-click="arrowClick('up')"></a>
-                <a class="arrow" id="down" t-on-click="arrowClick('down')"></a>
+            <div id="arrow_div" t-att-style="style">
+                <span class="arrow" id="left" t-on-click="arrowClick('left')"></span>
+                <span class="arrow" id="right" t-on-click="arrowClick('right')"></span>
+                <span class="arrow" id="up" t-on-click="arrowClick('up')"></span>
+                <span class="arrow" id="down" t-on-click="arrowClick('down')"></span>
             </div>
+            <Scoreboard scoreboard="scoreboard" t-att-style="style"/>
+        </div>
+    `;
+
+    const SCOREBOARD_TEMPLATE = xml /* xml */`
+        <div id="scoreboard" >
+            <table>
+                <tr>
+                    <th>Joueur 1</th><th>Joueur 2</th>
+                </tr>
+                <tr>
+                    <td><t t-esc="props.scoreboard.player1"/></td><td><t t-esc="props.scoreboard.player2"/></td>
+                </tr>
+            </table>
         </div>
     `;
 
     const GAME_BOARD_TEMPLATE = xml /* xml */ `
-        <div>
+        <div id="gameBoard">
             <t t-set="numLine" t-value="0" />
-            <table id="gameBoard">
+            <table>
                 <t t-foreach="props.gameBoard.board" t-as="line">
                     <t t-set="numColumn" t-value="0" />
                     <tr>
@@ -39,10 +59,15 @@
         static template = GAME_BOARD_TEMPLATE;
         static props = ["gameBoard"];
     }
+    
+    class Scoreboard extends Component {
+        static template = SCOREBOARD_TEMPLATE;
+        static props = ["scoreboard"];
+    }
 
     class Game extends Component {
         static template = GAME_TEMPLATE;
-        static components = { GameBoard };
+        static components = { GameBoard, Scoreboard };
 
         gameBoard = useState({
             gameID: null,
@@ -53,6 +78,11 @@
             turn_no: null,
             board: [],
         });
+
+        scoreboard = useState({
+            player1: null,
+            player2: null,
+        })
 
         async newGame() {
             const response = await this.jsonRPC("/game/new/", {
@@ -66,6 +96,8 @@
             this.gameBoard.activePlayer = response.player1;
             this.gameBoard.turn_no = response.turn_no;
             this.gameBoard.board = response.board;
+            this.scoreboard.player1 = 1;
+            this.scoreboard.player2 = 1;
         }
 
         async arrowClick(movement) {
@@ -79,6 +111,8 @@
             this.gameBoard.activePlayer = newState.activePlayer;
             this.gameBoard.player1_pos = newState.player1_pos;
             this.gameBoard.player2_pos = newState.player2_pos;
+            this.scoreboard.player1 = newState.player1_score;
+            this.scoreboard.player2 = newState.player2_score;
         }
 
         jsonRPC(url, data) {

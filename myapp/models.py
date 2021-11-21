@@ -65,8 +65,12 @@ class GameBoard(db.Model):
 			board.append(line)
 		return board
 
-	def pos_active_player(self):
-		pass
+	def score(self, player_number):
+		board = self.game_board_state_from_str()
+
+		score = lambda player_number, board : 0 if len(board) <= 0 else board[0].count(player_number) + score(player_number, board[1:])
+
+		return score(player_number, board)
 
 	def move_allowed(self, move, line, column, board, num_player):
 		if move == "right":
