@@ -27,7 +27,7 @@ L'IA se base sur un apprentissage par renforcement (Q-Function) :
 - [x] Squelette base de l'application
 - [x] IA naive
 - [x] Capture des enclos
-- [ ] Fin de partie
+- [x] Fin de partie
 - [ ] IA complète
 - [ ] Entrainement IA
 - [ ] Gestion des exceptions
