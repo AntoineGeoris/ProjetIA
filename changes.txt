@@ -17,4 +17,5 @@
                 Verification pour éviter des doublons (2x même adresse email) semble ok
             Changement image de profile
                 Resize fonctionne (pour éviter de stocker des images trop lourde inutilement)
+                Pas encore implementé la suppression des images lorsqu'un utilisateur change de photo 
             PRG design pattern 
