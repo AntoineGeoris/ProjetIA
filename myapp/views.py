@@ -1,10 +1,10 @@
-from flask import render_template, flash, redirect, request, jsonify
+from flask import render_template, flash, redirect, request, jsonify, request
 from flask.helpers import url_for
+from wtforms.validators import Email
 from myapp.forms import RegistrationForm, LoginForm
-from myapp import app
+from myapp import app, db, bcrypt
+from flask_login import login_user, current_user, logout_user, login_required
 import myapp.models as models
-
- #Generated w/ secrets.token_hex()
 
 @app.route('/')
 @app.route('/index/')
@@ -49,15 +49,39 @@ def game_move():
 
 @app.route('/registration/', methods=['GET', 'POST'])
 def registration():
+	if current_user.is_authenticated:
+		return redirect(url_for('index'))
 	form = RegistrationForm()
 	if form.validate_on_submit() :
-		flash(f'Compte crée pour {form.username.data} !', 'success')
-		return redirect(url_for('index'))
+		hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8') #decode used to obtain a string rather than a binary, easier for our planned db
+		user = models.Player(username=form.username.data, email=form.email.data, password = hashed_password)
+		db.session.add(user)
+		db.session.commit()
+		flash(f'Compte crée pour {form.username.data} ! Vous pouvez désormais vous connecter', 'success')
+		return redirect(url_for('login'))
 	return render_template('registration.html', title = 'Créer un compte', form=form)
 
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
+	if current_user.is_authenticated:
+		return redirect(url_for('index'))
 	form = LoginForm()
 	if form.validate_on_submit() :
-		pass
+		player = models.Player.query.filter_by(email=form.email.data).first()
+		if player and bcrypt.check_password_hash(player.password, form.password.data):
+			login_user(player, remember=form.remember.data)
+			next_page = request.args.get('next') # Get the page that the user was trying to access before getting to loggin and get it if it exist, get none if none
+			return redirect(next_page) if next_page else redirect(url_for('index'))
+		else :
+			flash('L\'authentification a échoué, verifiez vos identifiants', 'danger')
 	return render_template('login.html', title = 'Se connecter', form = form)
+
+@app.route('/logout/')
+def logout():
+	logout_user()
+	return redirect(url_for('index'))
+
+@app.route('/account/')
+@login_required
+def account():
+	return render_template('account.html', title = 'Compte')

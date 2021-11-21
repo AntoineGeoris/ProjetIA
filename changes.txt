@@ -1,0 +1,10 @@
+21/11 - Connection Branch (Mathieu): 
+    Suppression des utilisateurs crées depuis init_db 
+    Inscription fonctionnelle 
+        BCrypt utilisé : ajouté au requirements.txt
+        Gestion exception création compte déjà existants (username & email)
+    Login
+        flask-login utilisé : Ajouté au requirements.txt
+        Bon affichage une fois connecté
+        Si tentative accès /account en non connecté, utilisateur redirigé vers la page de login 
+            Une fois log, l'utilisateur est redirigé vers la page à laquelle il tentait d'accéder (ou vers index sinon)

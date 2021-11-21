@@ -1,22 +1,22 @@
 #from sqlalchemy.orm import backref
-from myapp import db
+from myapp import db, login_manager
 from myapp.ia import AI
 from datetime import datetime
 from enum import IntEnum
 import logging as lg
 from random import choice
+from flask_login import UserMixin
 
 def init_db() :
 	db.drop_all()
 	db.create_all()
-	players = [
-		Player(email = "natan@email.be", username = "Natan", password = "1235"),
-		Player(email = "mathieu@email.be", username = "Mathieu", password = "1235"),
-		Player(email = "antoine@email.be", username = "Antoine", password = "1235"),
-	]
-	db.session.add_all(players)
 	db.session.commit()
 	lg.warning('Database initialized !') 
+
+@login_manager.user_loader				# décorator, it just need to be that way, check documentation for more info
+def load_player(player_id):
+	return Player.query.get(int(player_id)) 
+
 
 class GameType(IntEnum):
 	AI_AGAINST_AI = 1
@@ -161,17 +161,15 @@ class GameBoard(db.Model):
 		else:
 			pass
 
-
-class Player(db.Model):
+class Player(db.Model, UserMixin):
 	id = db.Column(db.Integer, primary_key = True)
 	email = db.Column(db.String(120), unique = True, nullable = False)
 	username = db.Column(db.String(30), unique = True, nullable = False)
 	password = db.Column(db.String(20), nullable = False)
-	image_file = db.Column(db.String(30), nullable = True)
+	#image_file = db.Column(db.String(30), nullable = True)
 
 	def __repr__(self):
 		return f"User : ({self.id}) {self.username}"
-
 
 def new_game(player1 = None, player2 = None):
 	if player1 is None and player2 is None:
