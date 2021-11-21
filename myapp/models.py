@@ -36,7 +36,6 @@ class GameBoard(db.Model):
 	board = db.Column(db.String(25), nullable = False)
 	type = db.Column(db.Integer, nullable = False, default = GameType.PLAYER_AGAINST_AI)
 	active_player = db.Column(db.Integer, nullable = True)
-
 	player_1_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
 	player_2_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
 
@@ -132,8 +131,7 @@ class GameBoard(db.Model):
 							flags[line][column + 1] = False
 
 		return flags
-
-						
+					
 	def play(self, move):
 		
 		ia = AI()
@@ -166,10 +164,26 @@ class Player(db.Model, UserMixin):
 	email = db.Column(db.String(120), unique = True, nullable = False)
 	username = db.Column(db.String(30), unique = True, nullable = False)
 	password = db.Column(db.String(20), nullable = False)
-	image_file = db.Column(db.String(30), nullable = False, default = "default.jpg")
+	image_file = db.Column(db.String(30), nullable = True, default = "default.jpg")
 
 	def __repr__(self):
 		return f"User : ({self.id}) {self.username}"
+
+class History(db.Model) :
+	no_turn = db.Column(db.Integer)
+	player_1_pos = db.Column(db.String(2), nullable = False)
+	player_2_pos = db.Column(db.String(2), nullable = False)
+	board = db.Column(db.String(25), nullable = False)
+	move =  db.Column(db.String(5))
+	id = db.Column(db.Integer, db.ForeignKey('game_board.id'), primary_key = True) # ????
+
+class QTableState(db.Model):
+	#id = db.Column(db.Integer, primary_key = True) # Pas besoin ? Voir state ?
+	state = db.Column(db.String(32), primary_key = True) #25 board + 3 digits turn no + 4 digits for player position ? Primary key ? 
+	leftScore = db.Column(db.Integer)
+	rightScore = db.Column(db.Integer)
+	upScore = db.Column(db.Integer)
+	downScore = db.Column(db.Integer)
 
 def new_game(player1 = None, player2 = None):
 	if player1 is None and player2 is None:
