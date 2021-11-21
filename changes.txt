@@ -19,3 +19,8 @@
                 Resize fonctionne (pour éviter de stocker des images trop lourde inutilement)
                 Pas encore implementé la suppression des images lorsqu'un utilisateur change de photo 
             PRG design pattern 
+
+21/11 - DB update Branch (Natan):
+    Résolution du problème d'initialisation.
+        SQLAlchemy convertit camelCase en snake_case
+    Suppression des clés étrangères dans la table history
