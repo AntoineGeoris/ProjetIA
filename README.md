@@ -36,6 +36,8 @@ L'IA se base sur un apprentissage par renforcement (Q-Function) :
 - [ ] Optimisation apprentissage 
 - [ ] Documentation
 - [ ] Déployer application
+### Optimisation 
+- [ ] Enclos
 
 
 
