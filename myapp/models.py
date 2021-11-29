@@ -131,9 +131,13 @@ class GameBoard(db.Model):
 							flags[line][column + 1] = False
 
 		return flags
+
+	def save_state(self, move):
+		old_state = History(no_turn = self.no_turn, move = move, board = self.board, player_1_pos = self.player_1_pos, player_2_pos = self.player_2_pos, game_board_id = self.id)
+		db.session.add(old_state)
+		db.session.commit()		
 					
 	def play(self, move):
-		
 		ia = AI()
 		board = self.game_board_state_from_str()
 		if self.type == GameType.PLAYER_AGAINST_AI:
@@ -142,17 +146,21 @@ class GameBoard(db.Model):
 
 			if self.move_allowed(move, line, column, board, 1):
 				board = self.move(move, 1, board, line, column)
+				self.no_turn += 1;
+				self.__game_board_state_to_str(board)
+				self.save_state(move)
 
-				move = ia.get_move()
+				move = ia.get_move(self.id, self.board, self.player_1_pos, self.player_2_pos, self.no_turn, 2)
 				line = int(self.player_2_pos[0])
 				column = int(self.player_2_pos[1])
 				while not self.move_allowed(move, line, column, board, 2):
-					move = ia.get_move()
+					move = ia.get_move(self.id, self.board, self.player_1_pos, self.player_2_pos, self.no_turn, 2)
 				
 				board = self.move(move, 2, board, line, column)
 
-			self.no_turn += 2
-			self.__game_board_state_to_str(board)
+				self.no_turn += 1
+				self.__game_board_state_to_str(board)
+				self.save_state(move)
 
 		elif self.type == GameType.PLAYER_AGAINST_PLAYER:
 			pass
@@ -170,20 +178,20 @@ class Player(db.Model, UserMixin):
 		return f"User : ({self.id}) {self.username}"
 
 class History(db.Model) :
-	no_turn = db.Column(db.Integer)
+	game_board_id = db.Column(db.Integer, db.ForeignKey('game_board.id'), primary_key = True) # ????
+	no_turn = db.Column(db.Integer, primary_key = True)
 	player_1_pos = db.Column(db.String(2), nullable = False)
 	player_2_pos = db.Column(db.String(2), nullable = False)
 	board = db.Column(db.String(25), nullable = False)
 	move =  db.Column(db.String(5))
-	id = db.Column(db.Integer, db.ForeignKey('game_board.id'), primary_key = True) # ????
+	
 
 class QTableState(db.Model):
-	#id = db.Column(db.Integer, primary_key = True) # Pas besoin ? Voir state ?
 	state = db.Column(db.String(32), primary_key = True) #25 board + 3 digits turn no + 4 digits for player position ? Primary key ? 
-	leftScore = db.Column(db.Integer)
-	rightScore = db.Column(db.Integer)
-	upScore = db.Column(db.Integer)
-	downScore = db.Column(db.Integer)
+	left_score = db.Column(db.Integer, default=0)
+	right_score = db.Column(db.Integer, default=0)
+	up_score = db.Column(db.Integer, default=0)
+	down_score = db.Column(db.Integer, default=0)
 
 def new_game(player1 = None, player2 = None):
 	if player1 is None and player2 is None:
