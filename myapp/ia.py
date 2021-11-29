@@ -1,17 +1,23 @@
 import random
 import myapp.models as models
+
 from myapp import db
 
 class AI:
 
-	def get_move(self, game_board_id, board, player_1_pos, player_2_pos, turn_no, active_player):
-		state = board + player_1_pos + player_2_pos + str(turn_no)
-		move = self.get_action(state, 0.4)
+	def get_move(self, game_board, board):
+		state = game_board.board +  str(game_board.no_turn) + game_board.player_1_pos + game_board.player_2_pos + str(game_board.active_player)
+		move = self.get_action(state, 0.25)
 
-		if turn_no >= 2:
-			old_board = models.History.query.get((game_board_id, turn_no - 2)) 
-			old_state = old_board.board + old_board.player_1_pos + old_board.player_2_pos + str(turn_no - 2)
-			reward = self.reward(active_player, state, old_state)
+		line = int(game_board.player_1_pos[0]) if game_board.active_player == 1 else int(game_board.player_2_pos[0])
+		column = int(game_board.player_1_pos[1]) if game_board.active_player == 1 else int(game_board.player_2_pos[1])
+		while not game_board.move_allowed(move, line, column, board, game_board.active_player):
+			move = self.get_action(state, 0.25)
+
+		if game_board.no_turn >= 2:
+			old_board = models.History.query.get((game_board.id, game_board.no_turn - 2)) 
+			old_state = old_board.board + str(game_board.no_turn - 2) + old_board.player_1_pos + old_board.player_2_pos + str(game_board.active_player)
+			reward = self.reward(game_board.active_player, state, old_state)
 			self.updateQTable(reward, state, old_state, old_board.move, move)
 
 		return move;

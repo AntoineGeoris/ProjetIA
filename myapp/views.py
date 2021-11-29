@@ -20,6 +20,7 @@ def game() :
 
 @app.route('/game/new/', methods=['POST'])
 def new_game():
+	models.train()
 	playersID = request.get_json()
 	game = models.new_game(player1=playersID.get('player1ID'), player2=playersID.get('player2ID'))
 	return jsonify(
@@ -44,7 +45,7 @@ def game_move():
 		board = game.game_board_state_from_str(),
 		player1_pos = game.player_1_pos,
 		player2_pos = game.player_2_pos,
-		activePlayer = game.player_2_id,
+		activePlayer = game.active_player,
 		player1_score = game.score('1'),
 		player2_score = game.score('2'),
 		is_gameover = game.is_gameover(),

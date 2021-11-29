@@ -32,7 +32,7 @@ class GameBoard(db.Model):
 	player_1_pos = db.Column(db.String(2), nullable = False)
 	player_2_pos = db.Column(db.String(2), nullable = False)
 	date_played = db.Column(db.DateTime, nullable = False, default = datetime.utcnow)
-	no_turn = db.Column(db.Integer, nullable = False, default = "0")
+	no_turn = db.Column(db.Integer, nullable = False, default = 0)
 	board = db.Column(db.String(25), nullable = False)
 	type = db.Column(db.Integer, nullable = False, default = GameType.PLAYER_AGAINST_AI)
 	active_player = db.Column(db.Integer, nullable = True)
@@ -72,7 +72,7 @@ class GameBoard(db.Model):
 		return score(player_number, board)
 
 	def is_gameover(self):
-		return all(map(lambda x : x != '0', self.board))
+		return all(map(lambda x : x != '0', self.board)) or self.no_turn >= 500
 
 	def move_allowed(self, move, line, column, board, num_player):
 		if move == "right":
@@ -135,37 +135,59 @@ class GameBoard(db.Model):
 	def save_state(self, move):
 		old_state = History(no_turn = self.no_turn, move = move, board = self.board, player_1_pos = self.player_1_pos, player_2_pos = self.player_2_pos, game_board_id = self.id)
 		db.session.add(old_state)
-		db.session.commit()		
+		to_delete = History.query.get((self.id, self.no_turn - 5))
+		if to_delete is not None:
+			db.session.delete(to_delete)
+		db.session.commit()
+
+	def change_active_player(self):
+		self.active_player = 1 if self.active_player == 2 else 2
 					
-	def play(self, move):
-		ia = AI()
+	def play(self, move = None):
 		board = self.game_board_state_from_str()
+		ia = AI()
 		if self.type == GameType.PLAYER_AGAINST_AI:
 			line = int(self.player_1_pos[0])
 			column = int(self.player_1_pos[1])
 
-			if self.move_allowed(move, line, column, board, 1):
-				board = self.move(move, 1, board, line, column)
+			if self.move_allowed(move, line, column, board, self.active_player):
+				board = self.move(move, self.active_player, board, line, column)
 				self.no_turn += 1;
 				self.__game_board_state_to_str(board)
+				self.change_active_player()
 				self.save_state(move)
 
-				move = ia.get_move(self.id, self.board, self.player_1_pos, self.player_2_pos, self.no_turn, 2)
+				move = ia.get_move(self, board)
+
 				line = int(self.player_2_pos[0])
 				column = int(self.player_2_pos[1])
-				while not self.move_allowed(move, line, column, board, 2):
-					move = ia.get_move(self.id, self.board, self.player_1_pos, self.player_2_pos, self.no_turn, 2)
 				
-				board = self.move(move, 2, board, line, column)
+				board = self.move(move, self.active_player, board, line, column)
 
 				self.no_turn += 1
 				self.__game_board_state_to_str(board)
+				self.change_active_player()
 				self.save_state(move)
 
 		elif self.type == GameType.PLAYER_AGAINST_PLAYER:
 			pass
 		else:
-			pass
+			for i in range(2):
+				move = ia.get_move(self, board)
+
+				line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
+				column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
+				
+				board = self.move(move, self.active_player, board, line, column)
+
+				self.no_turn += 1
+				self.__game_board_state_to_str(board)
+				self.change_active_player()
+				self.save_state(move)
+
+				if self.is_gameover():
+					break;
+
 
 class Player(db.Model, UserMixin):
 	id = db.Column(db.Integer, primary_key = True)
@@ -187,7 +209,7 @@ class History(db.Model) :
 	
 
 class QTableState(db.Model):
-	state = db.Column(db.String(32), primary_key = True) #25 board + 3 digits turn no + 4 digits for player position ? Primary key ? 
+	state = db.Column(db.String(33), primary_key = True) #25 board + 4 digits turn no + 4 digits for player position + 1 digits for active player
 	left_score = db.Column(db.Integer, default=0)
 	right_score = db.Column(db.Integer, default=0)
 	up_score = db.Column(db.Integer, default=0)
@@ -198,12 +220,23 @@ def new_game(player1 = None, player2 = None):
 		type = GameType.AI_AGAINST_AI
 	elif player1 is not None and player2 is None:
 		type = GameType.PLAYER_AGAINST_AI
-		active_player = player1
 	else:
 		type = GameType.PLAYER_AGAINST_PLAYER
-		active_player = choice([player1, player2])
 	
-	new_game = GameBoard(player_1_id = player1, player_2_id = player2, type = type, active_player = active_player)
+	new_game = GameBoard(player_1_id = player1, player_2_id = player2, type = type, active_player = 1)
 	db.session.add(new_game)
 	db.session.commit()
+	new_game.save_state(None)
 	return new_game
+
+def train():
+	for i in range(1000):
+		game = new_game()
+
+		while not game.is_gameover():
+			game.play()
+			db.session.commit()
+		
+		lg.warning("Game " + str(i) + " is finished (" + str(game.no_turn) + ")")
+	
+	lg.warning("Training is finish (" + game.no_turn + ")")
