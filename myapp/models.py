@@ -172,19 +172,24 @@ class GameBoard(db.Model):
 			pass
 		else:
 			for i in range(2):
-				move = ia.get_move(self, board, 0.15)
+				move = ia.get_move(self, board, 0.3)
 
 				line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
 				column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
 				
 				self.save_state(move)
 				board = self.move(move, self.active_player, board, line, column)
-				self.no_turn += 1
 				self.__game_board_state_to_str(board)
-				self.change_active_player()
 
 				if self.is_gameover():
 					break;
+
+				self.no_turn += 1
+				self.change_active_player()
+
+				
+
+			ia.updateQTable(self.score(self.active_player))
 
 
 class Player(db.Model, UserMixin):
@@ -229,18 +234,12 @@ def new_game(player1 = None, player2 = None):
 	return new_game
 
 def train():
-	for y in range(10):
-		for i in range(250):
-			game = new_game()
-			start_time = datetime.now()
-			while not game.is_gameover() and game.no_turn <= (y + 1) * 10:
-				game.play()
-				db.session.commit()
-			
-			end_time = datetime.now()
-
-			lg.warning("Game duration : " + str(end_time - start_time))
-			lg.warning("Game " + str(i + 1) + " is finished (" + str(game.board.count("1") + game.board.count("2")) + "/25)")
+	
+	for i in range(10000):
+		game = new_game()
+		while not game.is_gameover():
+			game.play()
+			db.session.commit()
+		lg.warning("Game " + str(i + 1) + " is finished (" + str(game.board.count("1") + game.board.count("2")) + "/25) Nombre de tours : " + str(game.no_turn))
 		
-		
-	lg.warning("Training is finish (" + game.no_turn + ")")
+	lg.warning("Training is finish")
