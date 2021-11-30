@@ -20,7 +20,6 @@ def game() :
 
 @app.route('/game/new/', methods=['POST'])
 def new_game():
-	models.train()
 	playersID = request.get_json()
 	game = models.new_game(player1=playersID.get('player1ID'), player2=playersID.get('player2ID'))
 	return jsonify(

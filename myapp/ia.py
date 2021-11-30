@@ -5,18 +5,18 @@ from myapp import db
 
 class AI:
 
-	def get_move(self, game_board, board):
-		state = game_board.board +  str(game_board.no_turn) + game_board.player_1_pos + game_board.player_2_pos + str(game_board.active_player)
-		move = self.get_action(state, 0.25)
+	def get_move(self, game_board, board, eps):
+		state = game_board.board + game_board.player_1_pos + game_board.player_2_pos + str(game_board.active_player)
+		move = self.get_action(state, eps)
 
 		line = int(game_board.player_1_pos[0]) if game_board.active_player == 1 else int(game_board.player_2_pos[0])
 		column = int(game_board.player_1_pos[1]) if game_board.active_player == 1 else int(game_board.player_2_pos[1])
 		while not game_board.move_allowed(move, line, column, board, game_board.active_player):
-			move = self.get_action(state, 0.25)
+			move = self.get_action(state, eps)
 
 		if game_board.no_turn >= 2:
 			old_board = models.History.query.get((game_board.id, game_board.no_turn - 2)) 
-			old_state = old_board.board + str(game_board.no_turn - 2) + old_board.player_1_pos + old_board.player_2_pos + str(game_board.active_player)
+			old_state = old_board.board + old_board.player_1_pos + old_board.player_2_pos + str(game_board.active_player)
 			reward = self.reward(game_board.active_player, state, old_state)
 			self.updateQTable(reward, state, old_state, old_board.move, move)
 
@@ -24,13 +24,14 @@ class AI:
 
 	def get_action(self, state, eps):
 		score = models.QTableState.query.get(state)
+		score_is_none = score is None
 
-		if score is None:
+		if score_is_none:
 			score = models.QTableState(state = state)
 			db.session.add(score)
 			db.session.commit()
 
-		if random.uniform(0, 1) < eps:
+		if random.uniform(0, 1) < eps or score_is_none: 
 			action = random.choice(['left', 'right', 'up', 'down'])
 		else:
 			index = [score.down_score, score.up_score, score.left_score, score.right_score].index(max([score.down_score, score.up_score, score.left_score, score.right_score]))

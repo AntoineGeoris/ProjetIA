@@ -1,10 +1,10 @@
 #from sqlalchemy.orm import backref
+from datetime import datetime
 from myapp import db, login_manager
 from myapp.ia import AI
-from datetime import datetime
 from enum import IntEnum
 import logging as lg
-from random import choice
+from random import choice, randint
 from flask_login import UserMixin
 
 def init_db() :
@@ -72,7 +72,7 @@ class GameBoard(db.Model):
 		return score(player_number, board)
 
 	def is_gameover(self):
-		return all(map(lambda x : x != '0', self.board)) or self.no_turn >= 500
+		return all(map(lambda x : x != '0', self.board))
 
 	def move_allowed(self, move, line, column, board, num_player):
 		if move == "right":
@@ -151,39 +151,37 @@ class GameBoard(db.Model):
 			column = int(self.player_1_pos[1])
 
 			if self.move_allowed(move, line, column, board, self.active_player):
+				self.save_state(move)
 				board = self.move(move, self.active_player, board, line, column)
 				self.no_turn += 1;
 				self.__game_board_state_to_str(board)
-				self.change_active_player()
-				self.save_state(move)
+				self.change_active_player()				
 
-				move = ia.get_move(self, board)
+				move = ia.get_move(self, board, 0)
 
 				line = int(self.player_2_pos[0])
 				column = int(self.player_2_pos[1])
 				
+				self.save_state(move)
 				board = self.move(move, self.active_player, board, line, column)
-
 				self.no_turn += 1
 				self.__game_board_state_to_str(board)
-				self.change_active_player()
-				self.save_state(move)
+				self.change_active_player()				
 
 		elif self.type == GameType.PLAYER_AGAINST_PLAYER:
 			pass
 		else:
 			for i in range(2):
-				move = ia.get_move(self, board)
+				move = ia.get_move(self, board, 0.15)
 
 				line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
 				column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
 				
+				self.save_state(move)
 				board = self.move(move, self.active_player, board, line, column)
-
 				self.no_turn += 1
 				self.__game_board_state_to_str(board)
 				self.change_active_player()
-				self.save_state(move)
 
 				if self.is_gameover():
 					break;
@@ -205,11 +203,11 @@ class History(db.Model) :
 	player_1_pos = db.Column(db.String(2), nullable = False)
 	player_2_pos = db.Column(db.String(2), nullable = False)
 	board = db.Column(db.String(25), nullable = False)
-	move =  db.Column(db.String(5))
+	move =  db.Column(db.String(5), nullable = False)
 	
 
 class QTableState(db.Model):
-	state = db.Column(db.String(33), primary_key = True) #25 board + 4 digits turn no + 4 digits for player position + 1 digits for active player
+	state = db.Column(db.String(30), primary_key = True) #25 board + 4 digits for player position + 1 digits for active player
 	left_score = db.Column(db.Integer, default=0)
 	right_score = db.Column(db.Integer, default=0)
 	up_score = db.Column(db.Integer, default=0)
@@ -218,25 +216,31 @@ class QTableState(db.Model):
 def new_game(player1 = None, player2 = None):
 	if player1 is None and player2 is None:
 		type = GameType.AI_AGAINST_AI
+		active_player = randint(1,2)
 	elif player1 is not None and player2 is None:
 		type = GameType.PLAYER_AGAINST_AI
+		active_player = 1
 	else:
 		type = GameType.PLAYER_AGAINST_PLAYER
 	
-	new_game = GameBoard(player_1_id = player1, player_2_id = player2, type = type, active_player = 1)
+	new_game = GameBoard(player_1_id = player1, player_2_id = player2, type = type, active_player = active_player)
 	db.session.add(new_game)
 	db.session.commit()
-	new_game.save_state(None)
 	return new_game
 
 def train():
-	for i in range(1000):
-		game = new_game()
+	for y in range(10):
+		for i in range(250):
+			game = new_game()
+			start_time = datetime.now()
+			while not game.is_gameover() and game.no_turn <= (y + 1) * 10:
+				game.play()
+				db.session.commit()
+			
+			end_time = datetime.now()
 
-		while not game.is_gameover():
-			game.play()
-			db.session.commit()
+			lg.warning("Game duration : " + str(end_time - start_time))
+			lg.warning("Game " + str(i + 1) + " is finished (" + str(game.board.count("1") + game.board.count("2")) + "/25)")
 		
-		lg.warning("Game " + str(i) + " is finished (" + str(game.no_turn) + ")")
-	
+		
 	lg.warning("Training is finish (" + game.no_turn + ")")
