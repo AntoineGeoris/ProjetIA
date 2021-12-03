@@ -116,3 +116,11 @@ def account():
 		form.email.data = current_user.email
 	image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
 	return render_template('account.html', title = 'Compte', image_file = image_file, form = form)
+
+@app.errorhandler(404)
+def error_404(error):
+	return render_template('error404.html'), 404	#404 = status code
+
+@app.errorhandler(500)
+def error_500(error):
+	return render_template('error500.html'), 500
