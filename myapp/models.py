@@ -1,5 +1,6 @@
 #from sqlalchemy.orm import backref
-from myapp import db, login_manager
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from myapp import db, login_manager, app
 from myapp.ia import AI
 from datetime import datetime
 from enum import IntEnum
@@ -47,7 +48,6 @@ class GameBoard(db.Model):
 		self.board += "2"
 		self.player_1_pos = "00"
 		self.player_2_pos = str(self.BOARD_SIZE - 1) * 2
-
 
 	def __game_board_state_to_str(self, board):
 		string = ""
@@ -166,6 +166,19 @@ class Player(db.Model, UserMixin):
 	password = db.Column(db.String(20), nullable = False)
 	image_file = db.Column(db.String(30), nullable = True, default = "default.jpg")
 
+	def get_reset_token(self, expires_delay = 900):
+		s = Serializer(app.config['SECRET_KEY'], expires_delay)
+		return s.dumps({'user_id' : self.id}).decode('utf-8')
+
+	@staticmethod
+	def verify_reset_token(token) :
+		s = Serializer(app.config['SECRET_KEY'])
+		try : 
+			player_id = s.loads(token)['user_id']
+		except:
+			return None
+		return Player.query.get(player_id)
+
 	def __repr__(self):
 		return f"User : ({self.id}) {self.username}"
 
@@ -178,7 +191,6 @@ class History(db.Model) :
 	id = db.Column(db.Integer, db.ForeignKey('game_board.id'), primary_key = True) # ????
 
 class QTableState(db.Model):
-	#id = db.Column(db.Integer, primary_key = True) # Pas besoin ? Voir state ?
 	state = db.Column(db.String(32), primary_key = True) #25 board + 3 digits turn no + 4 digits for player position ? Primary key ? 
 	leftScore = db.Column(db.Integer)
 	rightScore = db.Column(db.Integer)

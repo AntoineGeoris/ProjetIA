@@ -1,3 +1,4 @@
+from flask.app import Flask
 from flask_wtf import FlaskForm 
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
@@ -45,3 +46,17 @@ class UpdateAccountForm(FlaskForm):
             player = Player.query.filter_by(email=email.data).first()
             if player:
                 raise ValidationError('Un compte existant utilise déjà cette adresse e-mail\n')
+
+class RequestResetForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit_btn  = SubmitField('Réinitialisation mot de passe')
+    
+    def validate_email(self, email):
+        player = Player.query.filter_by(email=email.data).first()
+        if not player:
+            raise ValidationError('Aucune compte n\'utilise cette adresse e-mail\n')
+
+class ResetPasswordForm(FlaskForm): 
+    password = PasswordField('Mot de passe', validators=[DataRequired()])
+    password_confirm = PasswordField('Confirmation mot de passe', validators=[DataRequired(), EqualTo('password')])
+    submit_btn  = SubmitField('Réinitialiser mot de passe')
