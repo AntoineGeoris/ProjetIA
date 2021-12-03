@@ -31,3 +31,9 @@
 	
 	A faire
 		Récompense en cas de victoire/défaite
+
+03/12 - AI Branch (Natan)
+	Récompense victoire défaite
+
+	A faire 
+		Changer la méthode play
