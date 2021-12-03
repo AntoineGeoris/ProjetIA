@@ -4,9 +4,10 @@ from PIL import Image
 from flask import render_template, flash, redirect, request, jsonify, request
 from flask.helpers import url_for
 from wtforms.validators import Email
-from myapp.forms import RegistrationForm, LoginForm, UpdateAccountForm
-from myapp import app, db, bcrypt
+from myapp.forms import (RegistrationForm, LoginForm, UpdateAccountForm, ResetPasswordForm, RequestResetForm)
+from myapp import app, db, bcrypt, mail
 from flask_login import login_user, current_user, logout_user, login_required
+from flask_mail import Message
 import myapp.models as models
 
 @app.route('/')
@@ -15,6 +16,7 @@ def index() :
 	return render_template('index.html', title = 'Accueil')
 
 @app.route('/game/')
+@login_required
 def game() : 
 	return render_template('game.html', title = 'Jeu')
 
@@ -116,3 +118,45 @@ def account():
 		form.email.data = current_user.email
 	image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
 	return render_template('account.html', title = 'Compte', image_file = image_file, form = form)
+
+def send_reset_email(user):
+	token = models.Player.get_reset_token(user)
+	msg = Message('Projet-IA-Maki : Réinitialisation du mot de passe', 
+					sender = "proj.ai.maki@gmail.com", 
+					recipients=[user.email])
+					#_external = True to obtain an absolute URL and not a relative one
+	msg.body = f''' Pour réinitialiser votre mot de passe, cliquez sur le lien suivant :  
+{url_for('reset_token', token=token, _external = True)} 
+
+Si vous n'êtes pas à l'origine de cette requête, ignorez cet email et aucun changement ne sera apporté.
+'''
+	mail.send(msg)
+
+@app.route('/reset_password', methods = ['GET', 'POST'])
+def reset_request() :
+	if current_user.is_authenticated:
+		return redirect(url_for('index'))
+	form = RequestResetForm()
+	if form.validate_on_submit():
+		player = models.Player.query.filter_by(email=form.email.data).first()
+		send_reset_email(player)
+		flash('Un email a été envoyé avec les instructions pour la réinitilisation du mot de passe', 'success')
+		return redirect(url_for('login'))
+	return render_template('reset_request.html', title = "Réinitilisation mot de passe", form = form)
+
+@app.route('/reset_password/<token>', methods = ['GET', 'POST'])
+def reset_token(token) :
+		if current_user.is_authenticated:
+			return redirect(url_for('index'))
+		player = models.Player.verify_reset_token(token)
+		if not player :
+			flash('Ce lien est expiré ou invalide', 'warning')
+			return redirect(url_for('reset_request'))
+		form = ResetPasswordForm()
+		if form.validate_on_submit() :
+			hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8') 
+			player.password = hashed_password
+			db.session.commit()
+			flash('Votre mot de passe a été modifié !', 'success')
+			return redirect(url_for('login'))
+		return render_template('reset_token.html', title = "Réinitilisation mot de passe", form = form)

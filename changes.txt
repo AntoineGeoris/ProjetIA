@@ -1,5 +1,12 @@
 ---delete avant remise---
 
+03/12 - Email-Pwd-reset (Mathieu):
+    Reset mdp via email (se retrouve dans spam)
+        Formulaires
+        Méthodes création et verif. token + envoie email
+
+
+
 21/11 - Connection Branch (Mathieu): 
     Suppression des utilisateurs crées depuis init_db 
     Inscription fonctionnelle 
