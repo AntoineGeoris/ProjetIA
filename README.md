@@ -28,7 +28,7 @@ L'IA se base sur un apprentissage par renforcement (Q-Function) :
 - [x] IA naive
 - [x] Capture des enclos
 - [x] Fin de partie
-- [ ] IA complète
+- [x] IA complète
 - [ ] Entrainement IA
 - [x] Gestion des exceptions
 - [ ] Clean code
@@ -52,6 +52,8 @@ L'IA se base sur un apprentissage par renforcement (Q-Function) :
 - [ ] Fonctionnalité supplémentaire
 ### Optimisation 
 - [ ] Enclos
+### Modification nécessaire
+- [ ] Méthode play dans la classe GameBoard (models.py)
 
 ## Installation & lancement
 ### Installation
