@@ -31,3 +31,16 @@
     Résolution du problème d'initialisation.
         SQLAlchemy convertit camelCase en snake_case
     Suppression des clés étrangères dans la table history
+
+01/12 - AI Branch (Natan)
+	Mise à jour de la QTable
+	Methode train
+	
+	A faire
+		Récompense en cas de victoire/défaite
+
+03/12 - AI Branch (Natan)
+	Récompense victoire défaite
+
+	A faire 
+		Changer la méthode play

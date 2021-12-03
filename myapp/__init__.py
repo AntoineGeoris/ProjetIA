@@ -27,3 +27,7 @@ models.db.init_app(app)
 def init_db() :
 	models.init_db()
 
+@app.cli.command("train")
+def train():
+	models.train()
+

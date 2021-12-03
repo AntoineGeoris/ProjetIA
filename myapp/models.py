@@ -1,11 +1,10 @@
-#from sqlalchemy.orm import backref
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from myapp import db, login_manager, app
-from myapp.ia import AI
 from datetime import datetime
+from myapp.ia import AI
 from enum import IntEnum
 import logging as lg
-from random import choice
+from random import choice, randint
 from flask_login import UserMixin
 
 def init_db() :
@@ -33,7 +32,7 @@ class GameBoard(db.Model):
 	player_1_pos = db.Column(db.String(2), nullable = False)
 	player_2_pos = db.Column(db.String(2), nullable = False)
 	date_played = db.Column(db.DateTime, nullable = False, default = datetime.utcnow)
-	no_turn = db.Column(db.Integer, nullable = False, default = "0")
+	no_turn = db.Column(db.Integer, nullable = False, default = 0)
 	board = db.Column(db.String(25), nullable = False)
 	type = db.Column(db.Integer, nullable = False, default = GameType.PLAYER_AGAINST_AI)
 	active_player = db.Column(db.Integer, nullable = True)
@@ -131,33 +130,60 @@ class GameBoard(db.Model):
 							flags[line][column + 1] = False
 
 		return flags
+
+	def save_state(self, move):
+		old_state = History(no_turn = self.no_turn, move = move, board = self.board, player_1_pos = self.player_1_pos, player_2_pos = self.player_2_pos, game_board_id = self.id)
+		db.session.add(old_state)
+		to_delete = History.query.get((self.id, self.no_turn - 5))
+		if to_delete is not None:
+			db.session.delete(to_delete)
+		db.session.commit()
+
+	def change_active_player(self):
+		self.active_player = 1 if self.active_player == 2 else 2
 					
-	def play(self, move):
-		
-		ia = AI()
+	def play(self, player_move = None):			# To be changed
 		board = self.game_board_state_from_str()
+		ia = AI()
 		if self.type == GameType.PLAYER_AGAINST_AI:
-			line = int(self.player_1_pos[0])
-			column = int(self.player_1_pos[1])
+			for i in range(2):
+				move = ia.get_move(self, board, 0.5) if self.active_player == 2 else player_move
 
-			if self.move_allowed(move, line, column, board, 1):
-				board = self.move(move, 1, board, line, column)
-
-				move = ia.get_move()
-				line = int(self.player_2_pos[0])
-				column = int(self.player_2_pos[1])
-				while not self.move_allowed(move, line, column, board, 2):
-					move = ia.get_move()
+				line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
+				column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
 				
-				board = self.move(move, 2, board, line, column)
+				self.save_state(move)
+				board = self.move(move, self.active_player, board, line, column)
+				self.__game_board_state_to_str(board)
 
-			self.no_turn += 2
-			self.__game_board_state_to_str(board)
+				if self.is_gameover():
+					ia.end_game(self, self.score(str(self.active_player)), move, player_1_is_ia = False)
+					break;
+
+				self.no_turn += 1
+				self.change_active_player()
 
 		elif self.type == GameType.PLAYER_AGAINST_PLAYER:
 			pass
 		else:
-			pass
+			for i in range(2):
+				move = ia.get_move(self, board, 0.5)
+
+				line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
+				column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
+				
+				self.save_state(move)
+				board = self.move(move, self.active_player, board, line, column)
+				self.__game_board_state_to_str(board)
+
+				if self.is_gameover():
+					ia.end_game(self, self.score(str(self.active_player)), move)
+					break;
+
+				self.no_turn += 1
+				self.change_active_player()
+
+				
 
 class Player(db.Model, UserMixin):
 	id = db.Column(db.Integer, primary_key = True)
@@ -183,31 +209,45 @@ class Player(db.Model, UserMixin):
 		return f"User : ({self.id}) {self.username}"
 
 class History(db.Model) :
-	no_turn = db.Column(db.Integer)
+	game_board_id = db.Column(db.Integer, db.ForeignKey('game_board.id'), primary_key = True) # ????
+	no_turn = db.Column(db.Integer, primary_key = True)
 	player_1_pos = db.Column(db.String(2), nullable = False)
 	player_2_pos = db.Column(db.String(2), nullable = False)
 	board = db.Column(db.String(25), nullable = False)
-	move =  db.Column(db.String(5))
-	id = db.Column(db.Integer, db.ForeignKey('game_board.id'), primary_key = True) # ????
+	move =  db.Column(db.String(5), nullable = False)
+	
 
 class QTableState(db.Model):
-	state = db.Column(db.String(32), primary_key = True) #25 board + 3 digits turn no + 4 digits for player position ? Primary key ? 
-	leftScore = db.Column(db.Integer)
-	rightScore = db.Column(db.Integer)
-	upScore = db.Column(db.Integer)
-	downScore = db.Column(db.Integer)
+	state = db.Column(db.String(30), primary_key = True) #25 board + 4 digits for players positions + 1 digits for active player
+	left_score = db.Column(db.Integer, default=0)
+	right_score = db.Column(db.Integer, default=0)
+	up_score = db.Column(db.Integer, default=0)
+	down_score = db.Column(db.Integer, default=0)
+
 
 def new_game(player1 = None, player2 = None):
 	if player1 is None and player2 is None:
 		type = GameType.AI_AGAINST_AI
+		active_player = randint(1,2)
 	elif player1 is not None and player2 is None:
 		type = GameType.PLAYER_AGAINST_AI
-		active_player = player1
+		active_player = 1
 	else:
 		type = GameType.PLAYER_AGAINST_PLAYER
-		active_player = choice([player1, player2])
 	
 	new_game = GameBoard(player_1_id = player1, player_2_id = player2, type = type, active_player = active_player)
 	db.session.add(new_game)
 	db.session.commit()
 	return new_game
+
+def train():
+	
+	for i in range(10000):
+		game = new_game()
+		lg.warning("Player " + str(game.active_player) + " start the game")
+		while not game.is_gameover():
+			game.play()
+			db.session.commit()
+		lg.warning("Game " + str(i + 1) + " is finished (" + str(game.board.count("1") + game.board.count("2")) + "/25) Number of turns: " + str(game.no_turn))
+		
+	lg.warning("Training is finish")
