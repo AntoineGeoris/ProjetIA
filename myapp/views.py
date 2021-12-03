@@ -160,3 +160,11 @@ def reset_token(token) :
 			flash('Votre mot de passe a été modifié !', 'success')
 			return redirect(url_for('login'))
 		return render_template('reset_token.html', title = "Réinitilisation mot de passe", form = form)
+  
+@app.errorhandler(404)
+def error_404(error):
+	return render_template('error404.html'), 404	#404 = status code
+
+@app.errorhandler(500)
+def error_500(error):
+	return render_template('error500.html'), 500
