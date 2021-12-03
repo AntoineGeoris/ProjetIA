@@ -74,7 +74,6 @@ L'IA se base sur un apprentissage par renforcement (Q-Function) :
 - pwd : 1234
 
 ### Questions
-
 - Documentation ok ?
 - Fonctionnalité supplémentaire - Photo utilisateur ? Darkmode ?
 

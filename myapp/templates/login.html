@@ -1,9 +1,4 @@
 {% extends 'layout.html' %}
-
-{% block head %}
-
-{% endblock %}
-
 {% block content %}
     <div class = "content-section">
         <form method = "POST" action="" novalidate>
@@ -43,10 +38,10 @@
             </fieldset>
             <div class="form-group">
                 {{form.submit_btn(class="btn btn-outline-info")}}
+                <small class="text-muted ml-2">
+                    <a href="{{url_for('reset_request')}}">Mot de passe oublié ?</a>
+                </small>
             </div>
-            <small class="text-muted ml-2">
-                <a href="#">Mot de passe oublié ?</a>
-            </small>
         </form>
     </div>
     <div class = "border-top pt-3">
