@@ -22,8 +22,8 @@ def game() :
 
 @app.route('/game/new/', methods=['POST'])
 def new_game():
-	playersID = request.get_json()
-	game = models.new_game(player1=playersID.get('player1ID'), player2=playersID.get('player2ID'))
+	player = models.Player.query.filter_by(id=current_user.id).first()
+	game = models.new_game(player1=player.id)
 	return jsonify(
 		gameID = game.id,
 		player1 = game.player_1_id,

@@ -110,12 +110,9 @@
         })
 
         async newGame() {
-            const response = await this.jsonRPC("/game/new/", {
-                player1ID: 1,
-                //player2ID: 2,
-            });
+            const response = await this.jsonRPC("/game/new/");
             this.gameBoard.gameID = response.gameID;
-            this.gameBoard.players = [response.player1, response.player2];
+            this.gameBoard.player = [response.player1];
             this.gameBoard.player1_pos = response.player1_pos;
             this.gameBoard.player2_pos = response.player2_pos;
             this.gameBoard.activePlayer = response.player1;
