@@ -242,12 +242,14 @@ def new_game(player1 = None, player2 = None):
 
 def train():
 	
-	for i in range(10000):
+	i = 0
+	while True:
 		game = new_game()
 		lg.warning("Player " + str(game.active_player) + " start the game")
 		while not game.is_gameover():
 			game.play()
 			db.session.commit()
 		lg.warning("Game " + str(i + 1) + " is finished (" + str(game.board.count("1") + game.board.count("2")) + "/25) Number of turns: " + str(game.no_turn))
+		i += 1
 		
 	lg.warning("Training is finish")

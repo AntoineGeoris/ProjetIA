@@ -28,7 +28,7 @@ class AI:
 			old_board = models.History.query.get((game_board.id, game_board.no_turn - 2)) 
 			old_state = old_board.board + old_board.player_1_pos + old_board.player_2_pos + str(game_board.active_player)
 			reward = self.reward(game_board.active_player, state, old_state)
-			self.updateQTable(reward, state, old_state, old_board.move, move)
+			self.updateQTable(reward, state, old_state, old_board.move)
 
 		return move;
 
@@ -87,7 +87,7 @@ class AI:
 	# 	- action_p1 next_action
 	#Postconditions :
 	#	- The QTable is update.
-	def updateQTable(self, reward, state_p1, state, action, action_p1):
+	def updateQTable(self, reward, state_p1, state, action):
 		score = models.QTableState.query.get(state)
 		score_p1 = models.QTableState.query.get(state_p1)
 
@@ -96,14 +96,7 @@ class AI:
 			db.session.add(score_p1)
 			db.session.commit()
 
-		if action_p1 == "left":
-			score_p1 = score_p1.left_score
-		elif action_p1 == "right":
-			score_p1 = score_p1.right_score
-		elif action_p1 == "up":
-			score_p1 = score_p1.up_score
-		else:
-			score_p1 = score_p1.down_score
+		score_p1 = max([score_p1.down_score, score_p1.up_score, score_p1.left_score, score_p1.right_score])
 
 		if action == "left":
 			score.left_score = score.left_score + 0.1 * (reward + 0.9 * score_p1 - score.left_score)
@@ -127,7 +120,7 @@ class AI:
 	# 	- player_1_is_ia, player_2_is_ia are set to false if player are human
 	#Postconditions :
 	#	- The QTable is update
-	def end_game(self, game_board, winner_score, winner_move, player_1_is_ia = True, player_2_is_ia = True):
+	def end_game(self, game_board, winner_score, player_1_is_ia = True, player_2_is_ia = True):
 		winner = game_board.active_player
 		loser = 1 if winner == 2 else 2
 
@@ -141,6 +134,6 @@ class AI:
 		old_loser_state = old_loser_board.board + old_loser_board.player_1_pos + old_loser_board.player_2_pos + str(loser)
 
 		if (winner == 1 and player_1_is_ia) or (winner == 2 and player_2_is_ia):
-			self.updateQTable(winner_score, winner_state, old_winner_state, old_winner_board.move, winner_move)
+			self.updateQTable(winner_score, winner_state, old_winner_state, old_winner_board.move)
 		if (loser == 1 and player_1_is_ia) or (loser == 2 and player_2_is_ia):
-			self.updateQTable(-winner_score, loser_state, old_loser_state, old_loser_board.move, loser_board.move)
+			self.updateQTable(-winner_score, loser_state, old_loser_state, old_loser_board.move)
