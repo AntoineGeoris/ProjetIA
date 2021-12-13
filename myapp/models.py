@@ -1,7 +1,7 @@
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from myapp import db, login_manager, app
 from datetime import datetime
-from myapp.ia import AI
+from myapp import ai
 from enum import IntEnum
 import logging as lg
 from random import choice, randint
@@ -144,10 +144,9 @@ class GameBoard(db.Model):
 					
 	def play(self, player_move = None):			# To be changed
 		board = self.game_board_state_from_str()
-		ia = AI()
 		if self.type == GameType.PLAYER_AGAINST_AI:
 			for i in range(2):
-				move = ia.get_move(self, board, 0.5) if self.active_player == 2 else player_move
+				move = ai.get_move(self, board, 0.5) if self.active_player == 2 else player_move
 
 				line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
 				column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
@@ -157,7 +156,7 @@ class GameBoard(db.Model):
 				self.__game_board_state_to_str(board)
 
 				if self.is_gameover():
-					ia.end_game(self, self.score(str(self.active_player)), move, player_1_is_ia = False)
+					ai.end_game(self, self.score(str(self.active_player)), move, player_1_is_ia = False)
 					break;
 
 				self.no_turn += 1
@@ -167,7 +166,7 @@ class GameBoard(db.Model):
 			pass
 		else:
 			for i in range(2):
-				move = ia.get_move(self, board, 0.5)
+				move = ai.get_move(self, board, 0.99)
 
 				line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
 				column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
@@ -177,7 +176,7 @@ class GameBoard(db.Model):
 				self.__game_board_state_to_str(board)
 
 				if self.is_gameover():
-					ia.end_game(self, self.score(str(self.active_player)), move)
+					ai.end_game(self, self.score(str(self.active_player)), move)
 					break;
 
 				self.no_turn += 1
@@ -239,17 +238,3 @@ def new_game(player1 = None, player2 = None):
 	db.session.add(new_game)
 	db.session.commit()
 	return new_game
-
-def train():
-	
-	i = 0
-	while True:
-		game = new_game()
-		lg.warning("Player " + str(game.active_player) + " start the game")
-		while not game.is_gameover():
-			game.play()
-			db.session.commit()
-		lg.warning("Game " + str(i + 1) + " is finished (" + str(game.board.count("1") + game.board.count("2")) + "/25) Number of turns: " + str(game.no_turn))
-		i += 1
-		
-	lg.warning("Training is finish")
