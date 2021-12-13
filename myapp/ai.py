@@ -1,5 +1,6 @@
 import random
 import myapp.models as models
+import datetime
 
 from myapp import db
 
@@ -15,33 +16,32 @@ MOVES = ["down", "up", "left", "right"]
 	#	- return the move from the AI
 	# 	- QTable score are updated
 def get_move(game_board, board, eps):
-    qtable_state = game_board.board + game_board.player_1_pos + game_board.player_2_pos + str(game_board.active_player)
+	qtable_state = game_board.board + game_board.player_1_pos + game_board.player_2_pos + str(game_board.active_player)
+	scores = models.QTableState.query.get(qtable_state)
 
-    scores = models.QTableState.query.get(qtable_state)
+	if scores is None:
+		scores = models.QTableState(qtable_state)
+		db.session.add(scores)
 
-    if scores is None:
-        scores = models.QTableState(state = qtable_state)
-        db.session.add(scores)
-        db.session.commit()
+	if random.uniform(0, 1) < eps:
+		move = random.choice(MOVES)
+	else:
+		max_score_index = [scores.down_score, scores.up_score, scores.left_score, scores.right_score].index(max([scores.down_score, scores.up_score, scores.left_score, scores.right_score]))
+		move = MOVES[max_score_index]
 
-    if random.uniform(0, 1) < eps:
-        move = random.choice(MOVES)
-    else:
-        max_score_index = [scores.down_score, scores.up_score, scores.left_score, scores.right_score].index(max([scores.down_score, scores.up_score, scores.left_score, scores.right_score]))
-        move = MOVES[max_score_index]
+	line = int(game_board.player_1_pos[0]) if game_board.active_player == 1 else int(game_board.player_2_pos[0])
+	column = int(game_board.player_1_pos[1]) if game_board.active_player == 1 else int(game_board.player_2_pos[1])
+	while not game_board.move_allowed(move, line, column, board, game_board.active_player):
+		move = random.choice(MOVES)
 
-    line = int(game_board.player_1_pos[0]) if game_board.active_player == 1 else int(game_board.player_2_pos[0])
-    column = int(game_board.player_1_pos[1]) if game_board.active_player == 1 else int(game_board.player_2_pos[1])
-    while not game_board.move_allowed(move, line, column, board, game_board.active_player):
-        move = random.choice(MOVES)
+	if game_board.no_turn >= 2:
+		old_board = models.History.query.get((game_board.id, game_board.no_turn - 2)) 
+		old_state = old_board.board + old_board.player_1_pos + old_board.player_2_pos + str(game_board.active_player)
+		reward = get_reward(game_board.active_player, qtable_state, old_state)
+		update_qtable(reward, qtable_state, old_state, old_board.move)
 
-    if game_board.no_turn >= 2:
-        old_board = models.History.query.get((game_board.id, game_board.no_turn - 2)) 
-        old_state = old_board.board + old_board.player_1_pos + old_board.player_2_pos + str(game_board.active_player)
-        reward = get_reward(game_board.active_player, qtable_state, old_state)
-        update_qtable(reward, qtable_state, old_state, old_board.move)
-
-    return move
+	#db.session.commit()
+	return move
 
 
 #Description:
@@ -78,7 +78,7 @@ def update_qtable(reward, state_p1, state, action):
 		score_p1 = models.QTableState.query.get(state_p1)
 
 		if score_p1 is None:
-			score_p1 = models.QTableState(state = state_p1, up_score = 0, down_score = 0, left_score = 0, right_score = 0)
+			score_p1 = models.QTableState(state_p1)
 			db.session.add(score_p1)
 
 		score_p1 = max([score_p1.down_score, score_p1.up_score, score_p1.left_score, score_p1.right_score])
@@ -92,7 +92,7 @@ def update_qtable(reward, state_p1, state, action):
 		else:
 			score.down_score = score.down_score + 0.1 * (reward + 0.9 * score_p1 - score.down_score)
 
-		db.session.commit()
+		
 
 #Description:
 	#	This function calculate the reward gain or lose. (At the end of the game)
@@ -105,7 +105,7 @@ def update_qtable(reward, state_p1, state, action):
 	# 	- player_1_is_ia, player_2_is_ia are set to false if player are human
 	#Postconditions :
 	#	- The QTable is update
-def end_game(game_board, winner_score, player_1_is_ia = True, player_2_is_ia = True):
+def end_game(game_board, winner_score, player_1_is_ia = True):
 		winner = game_board.active_player
 		loser = 1 if winner == 2 else 2
 
@@ -118,7 +118,31 @@ def end_game(game_board, winner_score, player_1_is_ia = True, player_2_is_ia = T
 		old_loser_board = models.History.query.get((game_board.id, game_board.no_turn - 3))
 		old_loser_state = old_loser_board.board + old_loser_board.player_1_pos + old_loser_board.player_2_pos + str(loser)
 
-		if (winner == 1 and player_1_is_ia) or (winner == 2 and player_2_is_ia):
+		if (winner == 1 and player_1_is_ia) or winner == 2:
 			update_qtable(winner_score, winner_state, old_winner_state, old_winner_board.move)
-		if (loser == 1 and player_1_is_ia) or (loser == 2 and player_2_is_ia):
+		if (loser == 1 and player_1_is_ia) or loser == 2:
 			update_qtable(-winner_score, loser_state, old_loser_state, old_loser_board.move)
+
+		#db.session.commit()
+
+def train():
+	start_time = datetime.datetime.now()
+	eps = 0.99
+	for i in range(10000):
+		game = models.GameBoard()
+		db.session.add(game)
+		db.session.commit()
+
+		while not game.is_gameover():
+			game.play(eps = 0.99)
+
+		if i % 1000 == 0:
+			eps -= 0.01
+		
+		print("Game " + str(i + 1) + " is finished")
+	
+	end_time = datetime.datetime.now()
+
+	print(end_time - start_time)
+
+	db.session.commit()

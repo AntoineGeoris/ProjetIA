@@ -21,9 +21,6 @@ def load_player(player_id):
 class GameType(IntEnum):
 	AI_AGAINST_AI = 1
 	PLAYER_AGAINST_AI = 2
-	PLAYER_AGAINST_PLAYER = 3
-
-	#Will probably have changes in the DB implementation, testing purpose
 
 class GameBoard(db.Model):
 	BOARD_SIZE = 5
@@ -39,7 +36,7 @@ class GameBoard(db.Model):
 	player_1_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
 	player_2_id = db.Column(db.Integer, db.ForeignKey('player.id'), nullable = True)
 
-	def __init__(self, **kwargs):
+	def __init__(self, player = None, **kwargs):
 		super(GameBoard, self).__init__(**kwargs)
 		self.board = "1"
 		for i in range((self.BOARD_SIZE ** 2) - 2):
@@ -47,6 +44,12 @@ class GameBoard(db.Model):
 		self.board += "2"
 		self.player_1_pos = "00"
 		self.player_2_pos = str(self.BOARD_SIZE - 1) * 2
+		if player is None:
+			self.type = GameType.AI_AGAINST_AI
+		else:
+			type = GameType.PLAYER_AGAINST_AI
+
+		self.active_player = randint(1,2)
 
 	def __game_board_state_to_str(self, board):
 		string = ""
@@ -137,51 +140,27 @@ class GameBoard(db.Model):
 		to_delete = History.query.get((self.id, self.no_turn - 5))
 		if to_delete is not None:
 			db.session.delete(to_delete)
-		db.session.commit()
 
 	def change_active_player(self):
 		self.active_player = 1 if self.active_player == 2 else 2
 					
-	def play(self, player_move = None):			# To be changed
+	def play(self, move = None, eps = 0):		# To be changed
 		board = self.game_board_state_from_str()
-		if self.type == GameType.PLAYER_AGAINST_AI:
-			for i in range(2):
-				move = ai.get_move(self, board, 0.5) if self.active_player == 2 else player_move
 
-				line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
-				column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
-				
-				self.save_state(move)
-				board = self.move(move, self.active_player, board, line, column)
-				self.__game_board_state_to_str(board)
+		if move is None:
+			move = ai.get_move(self, board, eps)
 
-				if self.is_gameover():
-					ai.end_game(self, self.score(str(self.active_player)), move, player_1_is_ia = False)
-					break;
+		line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
+		column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
+		self.save_state(move)
+		board = self.move(move, self.active_player, board, line, column)
+		self.__game_board_state_to_str(board)
 
-				self.no_turn += 1
-				self.change_active_player()
+		if self.is_gameover():
+			ai.end_game(self, self.score(str(self.active_player)), player_1_is_ia = (self.type == GameType.AI_AGAINST_AI))
 
-		elif self.type == GameType.PLAYER_AGAINST_PLAYER:
-			pass
-		else:
-			for i in range(2):
-				move = ai.get_move(self, board, 0.99)
-
-				line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
-				column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
-				
-				self.save_state(move)
-				board = self.move(move, self.active_player, board, line, column)
-				self.__game_board_state_to_str(board)
-
-				if self.is_gameover():
-					ai.end_game(self, self.score(str(self.active_player)), move)
-					break;
-
-				self.no_turn += 1
-				self.change_active_player()
-
+		self.no_turn += 1
+		self.change_active_player()
 				
 
 class Player(db.Model, UserMixin):
@@ -208,7 +187,7 @@ class Player(db.Model, UserMixin):
 		return f"User : ({self.id}) {self.username}"
 
 class History(db.Model) :
-	game_board_id = db.Column(db.Integer, db.ForeignKey('game_board.id'), primary_key = True) # ????
+	game_board_id = db.Column(db.Integer, db.ForeignKey('game_board.id'), primary_key = True)
 	no_turn = db.Column(db.Integer, primary_key = True)
 	player_1_pos = db.Column(db.String(2), nullable = False)
 	player_2_pos = db.Column(db.String(2), nullable = False)
@@ -223,18 +202,10 @@ class QTableState(db.Model):
 	up_score = db.Column(db.Integer, default=0)
 	down_score = db.Column(db.Integer, default=0)
 
-
-def new_game(player1 = None, player2 = None):
-	if player1 is None and player2 is None:
-		type = GameType.AI_AGAINST_AI
-		active_player = randint(1,2)
-	elif player1 is not None and player2 is None:
-		type = GameType.PLAYER_AGAINST_AI
-		active_player = 1
-	else:
-		type = GameType.PLAYER_AGAINST_PLAYER
-	
-	new_game = GameBoard(player_1_id = player1, player_2_id = player2, type = type, active_player = active_player)
-	db.session.add(new_game)
-	db.session.commit()
-	return new_game
+	def __init__(self, state, **kwargs):
+		super(QTableState, self).__init__(**kwargs)
+		self.state = state;
+		self.left_score = 0
+		self.right_score = 0
+		self.up_score = 0
+		self.down_score = 0
