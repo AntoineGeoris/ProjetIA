@@ -1,6 +1,5 @@
 import random
 import myapp.models as models
-import datetime
 import logging as lg
 
 from myapp import db
@@ -124,13 +123,10 @@ def end_game(game_board, winner_score, player_1_is_ia = True):
 			update_qtable(-winner_score, loser_state, old_loser_state, old_loser_board.move)
 
 def train():
-	# Games already complete : 30.000
-	start_time = datetime.datetime.now()
-	eps = 0.99
-	num_of_periods = 30
+	eps = max(1 - models.GameBoard.query.filter_by(type = models.GameType.AI_AGAINST_AI).count() / 100000, 0.1)
+	num_of_periods = 60
 	num_of_games_per_commit = 1000
 	for i in range(num_of_periods):
-		start_time_period = datetime.datetime.now()
 		games = []
 		for j in range(num_of_games_per_commit):
 			game = models.GameBoard()
@@ -140,22 +136,15 @@ def train():
 		game_completed = 0
 		for game in games:
 			while not game.is_gameover():
-				game.play(eps = 0.99)
+				game.play(eps = eps)
 			game_completed += 1
 
 			if game_completed % 100 == 0:
 				lg.warning(str(game_completed) + " games completed")
 
 		db.session.commit()
-		end_time_period = datetime.datetime.now()
 		lg.warning(str((i + 1) * num_of_games_per_commit) + " games have been committed")
 
 		if i % 1000 == 0:
 			eps -= 0.01
-	
-	end_time = datetime.datetime.now()
-
-	print("Total time : " + str(end_time - start_time))
-	print("Time per game : " + str((end_time - start_time) / (num_of_periods * num_of_games_per_commit)))
-
 	db.session.commit()
