@@ -23,11 +23,14 @@ def game() :
 @app.route('/game/new/', methods=['POST'])
 def new_game():
 	player = models.Player.query.filter_by(id=current_user.id).first()
-	game = models.new_game(player1=player.id)
+	game = models.GameBoard(player=player.id)
+	db.session.add(game)
+	if game.active_player == 2:
+		game.play()
+	db.session.commit()
 	return jsonify(
 		gameID = game.id,
 		player1 = game.player_1_id,
-		player2 = game.player_2_id,
 		player1_pos = game.player_1_pos,
 		player2_pos = game.player_2_pos,
 		turn_no = game.no_turn,
@@ -39,8 +42,10 @@ def new_game():
 def game_move():
 	game_state = request.get_json()
 	game = models.GameBoard.query.filter_by(id = game_state.get('gameID')).first()
-	game.play(game_state.get('move'))
-	models.db.session.commit()
+	if game.move_allowed(game_state.get('move'), game.active_player):
+		game.play(game_state.get('move'))
+		game.play()
+		models.db.session.commit()
 	return jsonify(
 		turn_no = game.no_turn,
 		board = game.game_board_state_from_str(),

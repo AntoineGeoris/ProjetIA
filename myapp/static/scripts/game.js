@@ -96,7 +96,7 @@
         gameBoard = useState({
             gameID: null,
             players: null,
-            player1_pos: "44",
+            player1_pos: null,
             player2_pos: null,
             activePlayer: null,
             turn_no: null,
@@ -112,10 +112,10 @@
         async newGame() {
             const response = await this.jsonRPC("/game/new/");
             this.gameBoard.gameID = response.gameID;
-            this.gameBoard.player = [response.player1];
+            this.gameBoard.player = response.player1;
             this.gameBoard.player1_pos = response.player1_pos;
             this.gameBoard.player2_pos = response.player2_pos;
-            this.gameBoard.activePlayer = response.player1;
+            this.gameBoard.activePlayer = response.activePlayer;
             this.gameBoard.turn_no = response.turn_no;
             this.gameBoard.board = response.board;
             this.scoreboard.player1 = 1;
