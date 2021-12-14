@@ -76,7 +76,11 @@ class GameBoard(db.Model):
 	def is_gameover(self):
 		return all(map(lambda x : x != '0', self.board))
 
-	def move_allowed(self, move, line, column, board, num_player):
+	def move_allowed(self, move, num_player):
+		board = self.game_board_state_from_str()
+		line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
+		column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
+
 		if move == "right":
 			return column + 1 < self.BOARD_SIZE and (board[line][column + 1] == '0' or board[line][column + 1] == str(num_player))
 		if move == "left":
@@ -137,7 +141,7 @@ class GameBoard(db.Model):
 	def save_state(self, move):
 		old_state = History(no_turn = self.no_turn, move = move, board = self.board, player_1_pos = self.player_1_pos, player_2_pos = self.player_2_pos, game_board_id = self.id)
 		db.session.add(old_state)
-		to_delete = History.query.get((self.id, self.no_turn - 5))
+		to_delete = History.query.get((self.id, self.no_turn - 4))
 		if to_delete is not None:
 			db.session.delete(to_delete)
 
@@ -146,12 +150,12 @@ class GameBoard(db.Model):
 					
 	def play(self, move = None, eps = 0):		# To be changed
 		board = self.game_board_state_from_str()
+		line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
+		column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
 
 		if move is None:
 			move = ai.get_move(self, board, eps)
-
-		line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
-		column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
+		
 		self.save_state(move)
 		board = self.move(move, self.active_player, board, line, column)
 		self.__game_board_state_to_str(board)

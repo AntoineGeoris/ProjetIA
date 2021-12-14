@@ -42,9 +42,10 @@ def new_game():
 def game_move():
 	game_state = request.get_json()
 	game = models.GameBoard.query.filter_by(id = game_state.get('gameID')).first()
-	game.play(game_state.get('move'))
-	game.play()
-	models.db.session.commit()
+	if game.move_allowed(game_state.get('move'), game.active_player):
+		game.play(game_state.get('move'))
+		game.play()
+		models.db.session.commit()
 	return jsonify(
 		turn_no = game.no_turn,
 		board = game.game_board_state_from_str(),

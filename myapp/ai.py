@@ -1,6 +1,7 @@
 import random
 import myapp.models as models
 import datetime
+import logging as lg
 
 from myapp import db
 
@@ -31,7 +32,7 @@ def get_move(game_board, board, eps):
 
 	line = int(game_board.player_1_pos[0]) if game_board.active_player == 1 else int(game_board.player_2_pos[0])
 	column = int(game_board.player_1_pos[1]) if game_board.active_player == 1 else int(game_board.player_2_pos[1])
-	while not game_board.move_allowed(move, line, column, board, game_board.active_player):
+	while not game_board.move_allowed(move, game_board.active_player):
 		move = random.choice(MOVES)
 
 	if game_board.no_turn >= 2:
@@ -40,7 +41,6 @@ def get_move(game_board, board, eps):
 		reward = get_reward(game_board.active_player, qtable_state, old_state)
 		update_qtable(reward, qtable_state, old_state, old_board.move)
 
-	#db.session.commit()
 	return move
 
 
@@ -123,26 +123,39 @@ def end_game(game_board, winner_score, player_1_is_ia = True):
 		if (loser == 1 and player_1_is_ia) or loser == 2:
 			update_qtable(-winner_score, loser_state, old_loser_state, old_loser_board.move)
 
-		#db.session.commit()
-
 def train():
+	# Games already complete : 30.000
 	start_time = datetime.datetime.now()
 	eps = 0.99
-	for i in range(10000):
-		game = models.GameBoard()
-		db.session.add(game)
+	num_of_periods = 30
+	num_of_games_per_commit = 1000
+	for i in range(num_of_periods):
+		start_time_period = datetime.datetime.now()
+		games = []
+		for j in range(num_of_games_per_commit):
+			game = models.GameBoard()
+			db.session.add(game)
+			games.append(game)
 		db.session.commit()
+		game_completed = 0
+		for game in games:
+			while not game.is_gameover():
+				game.play(eps = 0.99)
+			game_completed += 1
 
-		while not game.is_gameover():
-			game.play(eps = 0.99)
+			if game_completed % 100 == 0:
+				lg.warning(str(game_completed) + " games completed")
+
+		db.session.commit()
+		end_time_period = datetime.datetime.now()
+		lg.warning(str((i + 1) * num_of_games_per_commit) + " games have been committed")
 
 		if i % 1000 == 0:
 			eps -= 0.01
-		
-		print("Game " + str(i + 1) + " is finished")
 	
 	end_time = datetime.datetime.now()
 
-	print(end_time - start_time)
+	print("Total time : " + str(end_time - start_time))
+	print("Time per game : " + str((end_time - start_time) / (num_of_periods * num_of_games_per_commit)))
 
 	db.session.commit()
