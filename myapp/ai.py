@@ -1,6 +1,5 @@
 import random
 import myapp.models as models
-import logging as lg
 
 from myapp import db
 
@@ -121,30 +120,3 @@ def end_game(game_board, winner_score, player_1_is_ia = True):
 			update_qtable(winner_score, winner_state, old_winner_state, old_winner_board.move)
 		if (loser == 1 and player_1_is_ia) or loser == 2:
 			update_qtable(-winner_score, loser_state, old_loser_state, old_loser_board.move)
-
-def train():
-	eps = max(1 - models.GameBoard.query.filter_by(type = models.GameType.AI_AGAINST_AI).count() / 100000, 0.1)
-	num_of_periods = 60
-	num_of_games_per_commit = 1000
-	for i in range(num_of_periods):
-		games = []
-		for j in range(num_of_games_per_commit):
-			game = models.GameBoard()
-			db.session.add(game)
-			games.append(game)
-		db.session.commit()
-		game_completed = 0
-		for game in games:
-			while not game.is_gameover():
-				game.play(eps = eps)
-			game_completed += 1
-
-			if game_completed % 100 == 0:
-				lg.warning(str(game_completed) + " games completed")
-
-		db.session.commit()
-		lg.warning(str((i + 1) * num_of_games_per_commit) + " games have been committed")
-
-		if i % 1000 == 0:
-			eps -= 0.01
-	db.session.commit()

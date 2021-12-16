@@ -20,7 +20,8 @@ app.config['MAIL_PASSWORD'] = 'Tigrou007' #see above
 mail = Mail(app)
 
 from myapp import views
-from myapp import models, ai
+from myapp import models
+import training
 models.db.init_app(app)
 
 @app.cli.command("init_db")
@@ -29,5 +30,5 @@ def init_db() :
 
 @app.cli.command("train")
 def train():
-	ai.train()
+	training.train()
 
