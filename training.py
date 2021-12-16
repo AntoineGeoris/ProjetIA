@@ -3,7 +3,7 @@ import datetime
 import logging as lg
 import os
 
-NUMBER_OF_SESSIONS = 50             # Number of training session to do (1 training sessiont = 1 commit)
+NUMBER_OF_SESSIONS = 2             # Number of training session to do (1 training sessiont = 1 commit)
 NUMBER_OF_GAME_PER_SESSION = 1000    
 
 
@@ -35,7 +35,7 @@ def train():
                 game.play(eps = eps)
             games_completed += 1
 
-            if games_completed % 1000 == 0:
+            if eps > 0.1 and games_completed % 1000 == 0:
                 eps -= 0.01
 
             if games_completed % 250 == 0:
@@ -47,8 +47,7 @@ def train():
         db.session.commit()
         lg.warning(str(NUMBER_OF_GAME_PER_SESSION) + " games have been committed")
         
-        
-
     db.session.commit()
     lg.warning("Training is finished")
+    lg.warning("Elapsed time : " + str(datetime.datetime.now() - start_time))
     """os.system("shutdown /s /t 1")""" # shutdown computer after training
