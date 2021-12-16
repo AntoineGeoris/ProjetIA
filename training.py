@@ -3,7 +3,7 @@ import datetime
 import logging as lg
 import os
 
-NUMBER_OF_SESSIONS = 100             # Number of training session to do (1 training sessiont = 1 commit)
+NUMBER_OF_SESSIONS = 50             # Number of training session to do (1 training sessiont = 1 commit)
 NUMBER_OF_GAME_PER_SESSION = 1000    
 
 
@@ -38,12 +38,16 @@ def train():
             if games_completed % 1000 == 0:
                 eps -= 0.01
 
+            if games_completed % 250 == 0:
+                lg.warning("Number of games completed : " + str(games_completed))
+                current_time = datetime.datetime.now()
+                game_duration = time_per_game(current_time - start_time, games_completed)
+                lg.warning("Time left : " + str(time_left(game_duration, (NUMBER_OF_GAME_PER_SESSION * NUMBER_OF_SESSIONS) - games_completed)))
+
         db.session.commit()
-        end_time = datetime.datetime.now()
-        game_duration = time_per_game(end_time - start_time, games_completed)
         lg.warning(str(NUMBER_OF_GAME_PER_SESSION) + " games have been committed")
-        lg.warning("Number of games completed : " + str(games_completed))
-        lg.warning("Time left : " + str(time_left(game_duration, (NUMBER_OF_GAME_PER_SESSION * NUMBER_OF_SESSIONS) - games_completed)))
+        
+        
 
     db.session.commit()
     lg.warning("Training is finished")
