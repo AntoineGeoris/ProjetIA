@@ -17,7 +17,6 @@ def init_db() :
 def load_player(player_id):
 	return Player.query.get(int(player_id)) 
 
-
 class GameType(IntEnum):
 	AI_AGAINST_AI = 1
 	PLAYER_AGAINST_AI = 2
@@ -171,8 +170,7 @@ class GameBoard(db.Model):
 		self.change_active_player()
 
 		if self.type == GameType.PLAYER_AGAINST_AI:
-			db.session.commit()
-				
+			db.session.commit()				
 
 class Player(db.Model, UserMixin):
 	id = db.Column(db.Integer, primary_key = True)
@@ -194,6 +192,14 @@ class Player(db.Model, UserMixin):
 			return None
 		return Player.query.get(player_id)
 
+	def add_player(self):
+		db.session.add(self)
+		db.session.commit()
+
+	@staticmethod
+	def update_player() :
+		db.session.commit()
+	
 	def __repr__(self):
 		return f"User : ({self.id}) {self.username}"
 
@@ -205,7 +211,6 @@ class History(db.Model) :
 	board = db.Column(db.String(25), nullable = False)
 	move =  db.Column(db.String(5), nullable = False)
 	
-
 class QTableState(db.Model):
 	state = db.Column(db.String(30), primary_key = True) #25 board + 4 digits for players positions + 1 digits for active player
 	left_score = db.Column(db.Integer, default=0)

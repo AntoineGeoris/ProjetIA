@@ -64,8 +64,7 @@ def registration():
 	if form.validate_on_submit() :
 		hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8') #decode used to obtain a string rather than a binary, easier for our planned db
 		user = models.Player(username=form.username.data, email=form.email.data, password = hashed_password)
-		db.session.add(user)
-		db.session.commit()
+		models.Player.add_player(user)
 		flash(f'Compte crée pour {form.username.data} ! Vous pouvez désormais vous connecter', 'success')
 		return redirect(url_for('login'))
 	return render_template('registration.html', title = 'Créer un compte', form=form)
@@ -114,7 +113,7 @@ def account():
 			current_user.image_file = picture_file
 		current_user.username = form.username.data
 		current_user.email = form.email.data
-		db.session.commit()
+		models.Player.update_player()
 		flash('Les informations du compte ont été mises à jour ! ', 'success')
 		return redirect(url_for('account')) # Applying PRG (Post/Redirect/Get) design pattern
 	elif request.method == 'GET':
@@ -160,7 +159,7 @@ def reset_token(token) :
 		if form.validate_on_submit() :
 			hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8') 
 			player.password = hashed_password
-			db.session.commit()
+			models.Player.update_player()
 			flash('Votre mot de passe a été modifié !', 'success')
 			return redirect(url_for('login'))
 		return render_template('reset_token.html', title = "Réinitilisation mot de passe", form = form)
