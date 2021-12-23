@@ -1,3 +1,4 @@
+import click
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -21,7 +22,7 @@ mail = Mail(app)
 
 from myapp import views
 from myapp import models
-import training
+from myapp import training
 models.db.init_app(app)
 
 @app.cli.command("init_db")
@@ -31,4 +32,11 @@ def init_db() :
 @app.cli.command("train")
 def train():
 	training.train()
+
+@app.cli.command("train_with_time")
+@click.option("--hours", default = 1)
+@click.option("--minutes", default = 0)
+@click.option("--seconds", default = 0)
+def train_with_time(hours, minutes, seconds):
+	training.train_with_time(hours=hours, minutes = minutes, seconds=seconds)
 

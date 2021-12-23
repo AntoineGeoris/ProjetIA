@@ -24,10 +24,10 @@ def game() :
 def new_game():
 	player = models.Player.query.filter_by(id=current_user.id).first()
 	game = models.GameBoard(player=player.id)
-	db.session.add(game)
+	game.add_game_to_db()
 	if game.active_player == 2:
 		game.play()
-	db.session.commit()
+
 	return jsonify(
 		gameID = game.id,
 		player1 = game.player_1_id,
@@ -45,7 +45,6 @@ def game_move():
 	if game.move_allowed(game_state.get('move'), game.active_player):
 		game.play(game_state.get('move'))
 		game.play()
-		models.db.session.commit()
 	return jsonify(
 		turn_no = game.no_turn,
 		board = game.game_board_state_from_str(),

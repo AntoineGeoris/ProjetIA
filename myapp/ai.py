@@ -103,18 +103,29 @@ def update_qtable(reward, state_p1, state, action):
 	# 	- player_1_is_ia, player_2_is_ia are set to false if player are human
 	#Postconditions :
 	#	- The QTable is update
-def end_game(game_board, winner_score, player_1_is_ia = True):
-		winner = game_board.active_player
+def end_game(game_board, player_1_is_ia = True):
+		player_1_score = game_board.score("1")
+		player_2_score = game_board.score("2")
+		winner = 1 if player_1_score > player_2_score else 2
 		loser = 1 if winner == 2 else 2
+		winner_score = player_1_score if winner == 1 else player_2_score
 
-		winner_state = game_board.board + game_board.player_1_pos + game_board.player_2_pos + str(winner)
-		old_winner_board = models.History.query.get((game_board.id, game_board.no_turn - 2))
-		old_winner_state = old_winner_board.board + old_winner_board.player_1_pos + old_winner_board.player_2_pos + str(winner)
-
-		loser_board = models.History.query.get((game_board.id, game_board.no_turn - 1))
-		loser_state = loser_board.board + loser_board.player_1_pos + loser_board.player_2_pos + str(loser)
-		old_loser_board = models.History.query.get((game_board.id, game_board.no_turn - 3))
-		old_loser_state = old_loser_board.board + old_loser_board.player_1_pos + old_loser_board.player_2_pos + str(loser)
+		if game_board.active_player == winner:
+			winner_state = game_board.board + game_board.player_1_pos + game_board.player_2_pos + str(winner)
+			old_winner_board = models.History.query.get((game_board.id, game_board.no_turn - 2))
+			old_winner_state = old_winner_board.board + old_winner_board.player_1_pos + old_winner_board.player_2_pos + str(winner)
+			loser_board = models.History.query.get((game_board.id, game_board.no_turn - 1))
+			loser_state = loser_board.board + loser_board.player_1_pos + loser_board.player_2_pos + str(loser)
+			old_loser_board = models.History.query.get((game_board.id, game_board.no_turn - 3))
+			old_loser_state = old_loser_board.board + old_loser_board.player_1_pos + old_loser_board.player_2_pos + str(loser)
+		else:
+			loser_state = game_board.board + game_board.player_1_pos + game_board.player_2_pos + str(loser)
+			old_loser_board = models.History.query.get((game_board.id, game_board.no_turn - 2))
+			old_loser_state = old_loser_board.board + old_loser_board.player_1_pos + old_loser_board.player_2_pos + str(loser)
+			winner_board = models.History.query.get((game_board.id, game_board.no_turn - 1))
+			winner_state = winner_board.board + winner_board.player_1_pos + winner_board.player_2_pos + str(winner)
+			old_winner_board = models.History.query.get((game_board.id, game_board.no_turn - 3))
+			old_winner_state = old_winner_board.board + old_winner_board.player_1_pos + old_winner_board.player_2_pos + str(winner)
 
 		if (winner == 1 and player_1_is_ia) or winner == 2:
 			update_qtable(winner_score, winner_state, old_winner_state, old_winner_board.move)

@@ -147,8 +147,12 @@ class GameBoard(db.Model):
 
 	def change_active_player(self):
 		self.active_player = 1 if self.active_player == 2 else 2
+	
+	def add_game_to_db(self):
+		db.session.add(self)
+		db.session.commit()
 					
-	def play(self, move = None, eps = 0):		# To be changed
+	def play(self, move = None, eps = 0):
 		board = self.game_board_state_from_str()
 		line = int(self.player_1_pos[0]) if self.active_player == 1 else int(self.player_2_pos[0])
 		column = int(self.player_1_pos[1]) if self.active_player == 1 else int(self.player_2_pos[1])
@@ -161,10 +165,13 @@ class GameBoard(db.Model):
 		self.__game_board_state_to_str(board)
 
 		if self.is_gameover():
-			ai.end_game(self, self.score(str(self.active_player)), player_1_is_ia = (self.type == GameType.AI_AGAINST_AI))
+			ai.end_game(self, player_1_is_ia = (self.type == GameType.AI_AGAINST_AI))
 
 		self.no_turn += 1
 		self.change_active_player()
+
+		if self.type == GameType.PLAYER_AGAINST_AI:
+			db.session.commit()
 				
 
 class Player(db.Model, UserMixin):
