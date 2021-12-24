@@ -29,17 +29,17 @@ L'IA se base sur un apprentissage par renforcement (Q-Function) :
 - [x] Capture des enclos
 - [x] Fin de partie
 - [x] IA complète
-- [ ] Entrainement IA
+- [x] Entrainement IA (en cours jusqu'à la remise de l'examen, la db ne sera pas update ici car github ne permet pas des fichiers trop volumineux)
 - [x] Gestion des exceptions
-- [ ] Clean code
-- [ ] Dossier d'analyse
+- [x] Clean code (aurait pu mieux faire)
+- [x] Dossier d'analyse
 ### Dossier d'analyse
-- [ ] Structure projet
-- [ ] Schéma DB final
-- [ ] Explication IA
-- [ ] Explication entrainement IA
-- [ ] Analyse reflexive 
-- [ ] Fonctionnalité supplémentaire
+- [x] Structure projet
+- [x] Schéma DB final
+- [x] Explication IA
+- [x] Explication entrainement IA
+- [x] Analyse reflexive 
+- [x] Fonctionnalité supplémentaire
 ### Dépassement
 - [x] Inscription et connexion
 - [x] Gestion infos utilisateurs
@@ -49,7 +49,7 @@ L'IA se base sur un apprentissage par renforcement (Q-Function) :
 - [ ] Optimisation apprentissage 
 - [x] Documentation
 - [ ] Déployer application
-- [ ] Fonctionnalité supplémentaire
+- [x] Fonctionnalité supplémentaire
 ### Optimisation 
 - [ ] Enclos
 ### Modification nécessaire
@@ -66,16 +66,6 @@ L'IA se base sur un apprentissage par renforcement (Q-Function) :
 	- Il est également possible de définir des variables via Flask : [Plus d'informations](https://flask.palletsprojects.com/en/2.0.x/cli/)
 
 - Le site est accesible via http://localhost:5000/
-
-## Notes additionnelles 
-- Certains utilisateurs sont déjà crées pour les tests, merci de ne pas changer les informations de loggin (email/pwd).
-
-- email : test@test.com
-- pwd : 1234
-
-### Questions
-- Documentation ok ?
-- Fonctionnalité supplémentaire - Photo utilisateur ? Darkmode ?
 
 
 
