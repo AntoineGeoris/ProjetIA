@@ -49,6 +49,7 @@ class GameBoard(db.Model):
 		else:
 			type = GameType.PLAYER_AGAINST_AI
 
+		self.player_1_id = player
 		self.active_player = randint(1,2)
 
 	def __game_board_state_to_str(self, board):
