@@ -27,6 +27,7 @@ def init_train():
     training_already_completed = models.GameBoard.query.filter_by(type = models.GameType.AI_AGAINST_AI).count()
     eps = epsilon(training_already_completed)
     lg.warning(str(training_already_completed) + " trainings done")
+    lg.warning("Epsilon's value : " + str(eps))
 
     return eps
 
@@ -49,7 +50,8 @@ def train():
             games_completed += 1
 
             if eps > 0.1 and games_completed % 2500 == 0:
-                eps -= 0.01
+                eps -= 0.005
+                lg.warning("Epsilon's value : " + str(eps))
 
             if games_completed % NUMBER_OF_GAME_FOR_MESSAGE == 0:
                 lg.warning("Number of games completed : " + str(games_completed))
