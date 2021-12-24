@@ -37,6 +37,7 @@ def train():
 @click.option("--hours", default = 1)
 @click.option("--minutes", default = 0)
 @click.option("--seconds", default = 0)
-def train_with_time(hours, minutes, seconds):
-	training.train_with_time(hours=hours, minutes = minutes, seconds=seconds)
+@click.option("--shutdown", default = False)
+def train_with_time(hours, minutes, seconds, shutdown):
+	training.train_with_time(hours=hours, minutes = minutes, seconds=seconds, shutdown=shutdown)
 

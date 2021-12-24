@@ -63,9 +63,9 @@ def train():
     db.session.commit()
     lg.warning("Training is finished")
     lg.warning("Elapsed time : " + str(datetime.datetime.now() - start_time))
-    os.system("shutdown /s /t 1") # shutdown computer after training
+    #os.system("shutdown /s /t 1") # shutdown computer after training
 
-def train_with_time(hours = 1, minutes = 0, seconds = 0):
+def train_with_time(hours = 1, minutes = 0, seconds = 0, shutdown = False):
     eps = init_train()
     start_time = datetime.datetime.now()
     games_completed = 0
@@ -99,3 +99,6 @@ def train_with_time(hours = 1, minutes = 0, seconds = 0):
 
     db.session.commit()
     lg.warning("Training is finished. " + str(games_completed) + " games completed")
+
+    if shutdown:
+        os.system("shutdown /s /t 1") # shutdown computer after training
